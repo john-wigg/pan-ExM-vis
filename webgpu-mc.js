@@ -654,5 +654,5 @@ async function marchingCubes() {
 	await gpuReadBuffer2.mapAsync(GPUMapMode.READ);
 
 	const arrayBuffer2 = gpuReadBuffer2.getMappedRange();
-	console.log(new Float32Array(arrayBuffer2));
+	renderMarchingCubes(new Float32Array(arrayBuffer2));
 };

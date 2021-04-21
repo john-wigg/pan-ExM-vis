@@ -27,12 +27,10 @@ var mouseDown = false;
 
 var modelMatrix = mat4.create();
 
-main();
-
 //
 // Start here
 //
-function main() {
+function renderMarchingCubes(meshData) {
     const canvas = document.querySelector('#glcanvas');
     const canvasDiv = document.querySelector('#canvas-container');
 
@@ -65,9 +63,9 @@ function main() {
     //var modelMatrix = mat4.create();
 
     // Test cube data.
-    cubeVBO = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeStrip), gl.STATIC_DRAW);
+    meshVBO = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, meshVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, meshData, gl.STATIC_DRAW);
 
     // Shaders
     shader = new Shader (gl, vertShader, fragShader);
@@ -76,16 +74,16 @@ function main() {
     shader.setMat4(gl, "view", viewMatrix);
     shader.setMat4(gl, "proj", projMatrix);
 
-    window.requestAnimationFrame(function() {draw(gl); });
+    window.requestAnimationFrame(function() {draw(gl, meshData); });
 }
 
-function drawCube(gl) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVBO);
+function drawCube(gl, meshData) {
+    gl.bindBuffer(gl.ARRAY_BUFFER, meshVBO);
 
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(0);
 
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, cubeStrip.length / 3);
+    gl.drawArrays(gl.TRIANGLES, 0, meshData.length);
 }
 
 function handleMouseDown(e) {
@@ -117,7 +115,7 @@ function handleMouseMove(e) {
     }
 }
 
-function draw(gl) {
+function draw(gl, meshData) {
     // TODO: Update only when aspect changes.
     projMatrix = mat4.perspective(mat4.create(), 60.0 * Math.PI / 180.0, gl.canvas.width/gl.canvas.height, 0.01, 10.0);
     shader.setMat4(gl, "proj", projMatrix);
@@ -130,9 +128,9 @@ function draw(gl) {
     // Clear the color buffer with specified clear color
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    drawCube(gl);
+    drawCube(gl, meshData);
 
-    window.requestAnimationFrame(function() {draw(gl); });
+    window.requestAnimationFrame(function() {draw(gl, meshData); });
 }
 
 function resizeCanvas() {
