@@ -39,7 +39,7 @@ const caseToPolyCount = new Uint32Array([ // TODO: Optimize to uint8
 ]);
 
 // TODO: Optimize to uint8
-const caseToEdgeList = new Uint32Array([
+const caseToEdgeList = new Int32Array([
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 0, 1, 9, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -551,12 +551,11 @@ async function marchingCubes() {
 		usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC
 	});
 	
-	console.log("Size: " + caseToEdgeList.byteLength);
 	// Case to edges count table.
 	const gpuBufferCaseToEdges = device.createBuffer({
 		mappedAtCreation: true,
 		size: caseToEdgeList.byteLength,
-		usage: GPUBufferUsage.UNIFORM
+		usage: GPUBufferUsage.STORAGE
 	});
 
 
@@ -571,7 +570,7 @@ async function marchingCubes() {
 
 	// Transfer table to GPU.
 	const arrayBufferCaseToEdges = gpuBufferCaseToEdges.getMappedRange();
-	new Uint32Array(arrayBufferCaseToEdges).set(caseToEdgeList);
+	new Int32Array(arrayBufferCaseToEdges).set(caseToEdgeList);
 	gpuBufferCaseToEdges.unmap();
 
 	// TODO: Fill vertex buffer from HP.

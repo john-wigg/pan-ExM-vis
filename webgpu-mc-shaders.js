@@ -130,9 +130,9 @@ const uvec2[12] edgeVertices = {
     uvec2(3, 7),
 };
 
-layout(std140, set = 0, binding = 0) uniform CaseToEdges {
+layout(std430, set = 0, binding = 0) readonly buffer CaseToEdges {
     // For some reason multidimensional arrays don't work due to "minimum buffer size"?!
-    int caseToEdges[1024]; // TODO: Optimize memory layout probably.
+    int caseToEdges[4096]; // TODO: Optimize memory layout probably.
 };
 
 layout(std140, set = 0, binding = 1) uniform NumLevels {
@@ -216,10 +216,10 @@ void main() {
                     caseToEdges[16*caseIndex+8], caseToEdges[16*caseIndex+9], caseToEdges[16*caseIndex+10], caseToEdges[16*caseIndex+11],
                     caseToEdges[16*caseIndex+12], caseToEdges[16*caseIndex+13], caseToEdges[16*caseIndex+14], caseToEdges[16*caseIndex+15]};
 
-    ivec3 edges = ivec3(tris[3*voxel[3]], tris[3*voxel[3]]+1, tris[3*voxel[3]]+2);
+    ivec3 edges = ivec3(tris[3*voxel[3]], tris[3*voxel[3] + 1], tris[3*voxel[3] + 2]);
     for (int i = 0; i < 3; ++i) {
         uvec2 verts = edgeVertices[edges[i]];
-        vec4 vertPos = vec4(voxel.xyz, 0.0) + 0.5 * (vec4(vec3(vertexPosition[verts.x]), 0.0) + vec4(vec3(vertexPosition[verts.y]), 0.0));
+        vec4 vertPos = vec4(voxel.xyz, caseToEdges[16*192]) + 0.5 * (vec4(vec3(vertexPosition[verts.x]), 0.0) + vec4(vec3(vertexPosition[verts.y]), 0.0));
         triangles[3 * gl_GlobalInvocationID.x + i] = vertPos;
     }
 

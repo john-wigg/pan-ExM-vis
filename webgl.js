@@ -62,6 +62,8 @@ function renderMarchingCubes(meshData) {
     // Model matrix.
     //var modelMatrix = mat4.create();
 
+    gl.disable(gl.CULL_FACE);
+
     // Test cube data.
     meshVBO = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, meshVBO);
