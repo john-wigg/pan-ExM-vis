@@ -11,8 +11,8 @@ const ivec3[8] indexToOffset = {
 	ivec3(0, 1, 1)
 };
 
-layout(std140, set = 0, binding = 0) uniform LevelSize {
-    uint levelSize;
+layout(std140, set = 0, binding = 0) uniform GridSize {
+    uint gridSize;
 };
 
 layout(std140, set = 0, binding = 1) uniform Offset {
@@ -24,14 +24,17 @@ layout(std430, set = 0, binding = 2) buffer HistoPyramid {
 };
 
 void main() {
-    uint gridSize = levelSize;
     uint globalIndex = offset + (gl_GlobalInvocationID.z * gridSize + gl_GlobalInvocationID.y) * gridSize + gl_GlobalInvocationID.x;
-    histoPyramid[globalIndex] = 0;
-    uint prevOffset = offset - 8*levelSize*levelSize*levelSize;
+
+    uint prevOffset = offset - 8*gridSize*gridSize*gridSize;
+    uint prevGridSize = gridSize * 2;
+    uvec3 prevIndex = gl_GlobalInvocationID * 2;
     
+    uint sum = 0;
     for (int i = 0; i < 8; ++i) {
         uvec3 off = indexToOffset[i];
-        uint idx = prevOffset + ((2 * gl_GlobalInvocationID.z + off.z) * gridSize * 2 + 2 * gl_GlobalInvocationID.y + off.y) * gridSize * 2 + 2 * gl_GlobalInvocationID.x + off.x;
-        histoPyramid[globalIndex] += histoPyramid[idx];
+        uint idx = prevOffset + ((prevIndex.z + off.z) * prevGridSize + prevIndex.y + off.y) * prevGridSize + prevIndex.x + off.x;
+        sum += histoPyramid[idx];
     }
+    histoPyramid[globalIndex] = sum;
 }
