@@ -203,8 +203,6 @@ export async function marchingCubes(volumeData) {
 		4
 	);
 
-	console.log((8*baseLevelSize*baseLevelSize*baseLevelSize - 1)/7);
-
 	var t0 = performance.now()
 
 	// Submit GPU commands.
