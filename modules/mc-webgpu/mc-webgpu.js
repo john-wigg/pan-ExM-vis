@@ -211,13 +211,8 @@ export async function marchingCubes(volumeData) {
 
 	await gpuReadBuffer.mapAsync(GPUMapMode.READ);
 
-	var t1 = performance.now()
-	console.log("Computation took " + (t1 - t0) + " milliseconds.")
-
 	const arrayBuffer = gpuReadBuffer.getMappedRange();
 	const numTris = new Uint32Array(arrayBuffer)[0];
-
-	console.log(numTris);
 
 	// Create vertex buffer from base level.
 
@@ -322,8 +317,6 @@ export async function marchingCubes(volumeData) {
 		0,
 		numTris * 3 * 4
 	);
-
-	var t0 = performance.now()
 
 	// Submit GPU commands.
 	const gpuCommands2 = commandEncoder2.finish();
