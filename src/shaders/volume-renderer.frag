@@ -65,7 +65,7 @@ void main()
     float distInVolume = boxDst.y;
 
     vec4 surfaceColor = vec4(0.0, 0.0, 0.0, 1.0);
-    vec4 volumeColor = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 volumeColor = vec4(0.0, 0.0, 0.0, 0.0);
     if (renderIsosurface) {
         vec3 rayPos = rayOrig;
         float dist = 0.0;
