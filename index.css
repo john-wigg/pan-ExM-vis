@@ -1,0 +1,78 @@
+#canvas-container {
+    position: relative;
+}
+
+#canvas-container canvas {
+    position: absolute;
+}
+
+/* Overlay for the WebGL canvas with inside padding. */
+#canvas-container .canvas-overlay {
+    position: absolute;
+    padding: 2em;
+    box-sizing:border-box;
+    width: 100%;
+    pointer-events: none; /* Disable pointer events for overlay... */
+}
+
+.canvas-overlay .pointer-events {
+    pointer-events: auto;
+}
+
+.progress-list .progress {
+    height: 20pt;
+    margin-top: 1rem;
+}
+
+.progress-list .alert {
+    margin-top: 0.5rem;
+}
+
+.progress {
+    position: relative;
+}
+
+.progress-bar {
+    overflow: hidden;
+    z-index: 0;
+}
+
+.progress-label-back {
+    color: black;
+    clip-path: inset(0 0 0 0);
+    position: absolute;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    z-index: 0;
+    text-align: center;
+    font-size: 12pt;
+}
+
+.progress-label-front {
+    color: white;
+    clip-path: inset(0 100% 0 0);
+    position: absolute;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    z-index: 1;
+    text-align: center;
+    font-size: 12pt;
+}
+
+.v-divider {
+    border: 0;
+    border-left: 1px solid #0d6efd;
+    border-right: 1px solid #0d6efd;
+    z-index: 1;
+}
+
+/* Needed so flex works. */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}

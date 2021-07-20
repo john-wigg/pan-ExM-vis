@@ -1,0 +1,29 @@
+#version 450
+
+layout(std140, set = 0, binding = 0) uniform VolumeInfo {
+    int width;
+    int height;
+    int depth;
+} volumeInfo;
+
+layout(std430, set = 0, binding = 1) buffer VolumeData {
+    uint volumeData[];
+};
+
+layout(std430, set = 0, binding = 2) buffer VoronoiData {
+    uint voronoiData[];
+};
+
+uint fetchVoxel(int i, int j, int k) {
+    int globalIndex = (k * volumeInfo.height + j) * volumeInfo.width + i;
+    int texelIndex = globalIndex / 4;
+    int texelOffset = globalIndex % 4;
+    return (volumeData[texelIndex] << texelOffset) & 255;
+}
+
+void main() {
+    int n = 2048; // TODO: Hardcoded for now.
+    for (int s = n; s > 0; s = s >> 1) {
+        
+    }
+}
