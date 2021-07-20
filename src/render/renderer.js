@@ -274,7 +274,7 @@ function toggleIsosurface() {
 var renderVolume = true;
 function toggleVolume() {
     renderVolume = !renderVolume;
-    gl.uniform1i(uniformRenderVolume, renderIsosurface);
+    gl.uniform1i(uniformRenderVolume, renderVolume);
 }
 
 function setIsovalue() {
