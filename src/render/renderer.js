@@ -144,7 +144,7 @@ async function main() {
     
     gl.uniform1i(uniformVolume, 0);
     gl.uniform1i(uniformSdf, 1);
-    gl.uniform1f(uniformIsovalue, 10.0);
+    gl.uniform1f(uniformIsovalue, 5.0);
     gl.uniform1i(uniformRenderIsosurface, 1);
     gl.uniform1i(uniformRenderVolume, 1);
     gl.uniform2f(uniformResolution, gl.canvas.width, gl.canvas.height);

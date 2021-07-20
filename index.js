@@ -13,18 +13,20 @@ function loadVolumeData() {
     let progressLoad = new LabeledProgressBar(document.getElementById('volume-progress-load'), "Load TIFF...");
     chooseFile().then((file) => { modalLoadVolume.show(); return openTiff(file, progressLoad); })
                 .then((buffer) => { return decodeTiff(buffer, 16, progressDecode) }, (err) => {progressLoad.setError(err) })
-                .then((buffer) => { createVolumeTex(buffer, [1024, 1024, 150]); }, (err) => { progressDecode.setError(err) });
+                .then((buffer) => { createVolumeTex(buffer, [1024, 1024, 150]); }, (err) => { progressDecode.setError(err) })
+                .then(() => { modalLoadVolume.hide(); });
 }
 
 function loadCompartmentData() {
     let progressDecode = new LabeledProgressBar(document.getElementById('compartment-progress-decode'), "Decode TIFF...");
     let progressLoad = new LabeledProgressBar(document.getElementById('compartment-progress-load'), "Load TIFF...");
-    let progressOctree = new LabeledProgressBar(document.getElementById('compartment-progress-octree'), "Create Octree...");
-    let progressVoronoi = new LabeledProgressBar(document.getElementById('compartment-progress-voronoi'), "Create Voronoi...");
+    //let progressOctree = new LabeledProgressBar(document.getElementById('compartment-progress-octree'), "Create Octree...");
+    let progressVoronoi = new LabeledProgressBar(document.getElementById('compartment-progress-voronoi'), "Generate Distance Field...");
     chooseFile().then((file) => { modalLoadCompartment.show(); return openTiff(file, progressLoad); })
                 .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) }, (err) => { progressOpenTiff.setError(err) })
                 .then((buffer) => { return createVoronoi(buffer, progressVoronoi) }, (err) => { progressVoronoi.setError(err) })
-                .then((buffer) => { createSdfTex(buffer, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) });
+                .then((buffer) => { createSdfTex(buffer, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) })
+                .then(() => { modalLoadCompartment.hide(); });
                 //.then((buffer) => { return createOctree(buffer, progressOctree) }, (err) => { progressDecode.setError(err) })
 }
 
