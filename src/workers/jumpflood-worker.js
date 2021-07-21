@@ -7,7 +7,7 @@ onmessage = function(e) {
         var pixelData = new Uint8Array(buffer);
         var ptr = Module._malloc(pixelData.byteLength);
         Module.HEAPU8.set(pixelData, ptr);
-        var returnPtr = Module._jfa3(ptr, 1024, 1024, 150, start, stop);
+        var returnPtr = Module._jfa3(ptr, 1024, 1024, 150, start, stop, 3);
         Module._free(ptr);
         var returnBufSize = 1024*1024*(stop-start);
         var returnBuf = new ArrayBuffer(returnBufSize);

@@ -6,7 +6,7 @@
 #include <wasm_simd128.h>
 
 extern "C" {
-  unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int start, int stop, unsigned char target);
+  unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int start, int stop);
 }
 
 #define min(x, y) (x < y ? x : y)
@@ -83,10 +83,7 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                     up_zdist[j * width + i] = 9999.9;
                     int k;
                     for (k = slice; k < depth; ++k) {
-                        if (volume[(k * height + j) * width + i] == target) {
-                            up_zdist[j * width + i] = k - slice;
-                            break;
-                        }
+                        if (volume[(k * height + j) * width + i] == target) up_zdist[j * width + i] = k - slice;
                     }  
                 }
 
