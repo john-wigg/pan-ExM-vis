@@ -1,9 +1,5 @@
 var tiffWorker = new Worker('src/workers/decode-worker.js');
 var octreeWorker = new Worker('src/workers/octree-worker.js');
-var jumpfloodWorker = new Worker('src/workers/jumpflood-worker.js');
-var jumpfloodWorker2 = new Worker('src/workers/jumpflood-worker.js');
-var jumpfloodWorker3 = new Worker('src/workers/jumpflood-worker.js');
-var jumpfloodWorker4 = new Worker('src/workers/jumpflood-worker.js');
 
 var modalLoadVolume = new bootstrap.Modal(document.getElementById('modal-load-volume'), {});
 var modalLoadCompartment = new bootstrap.Modal(document.getElementById('modal-load-compartment'), {});
@@ -25,7 +21,7 @@ function loadCompartmentData() {
     chooseFile().then((file) => { modalLoadCompartment.show(); return openTiff(file, progressLoad); })
                 .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) }, (err) => { progressOpenTiff.setError(err) })
                 .then((buffer) => { return createVoronoi(buffer, progressVoronoi) }, (err) => { progressVoronoi.setError(err) })
-                .then((buffer) => { createSdfTex(buffer, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) })
+                .then((buffers) => { addSdfBuffers(buffers, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) })
                 .then(() => { modalLoadCompartment.hide(); });
                 //.then((buffer) => { return createOctree(buffer, progressOctree) }, (err) => { progressDecode.setError(err) })
 }
@@ -87,37 +83,39 @@ function decodeTiff(buffer, bits, progressBar) {
 
 var sdfProgress = 0.0;
 function createVoronoi(buffer, progressBar) {
+    var voxels = new Uint8Array(buffer);
+    const reducer = (accumulator, currentValue) => Math.max(accumulator, currentValue);
+    var numCompartments = voxels.reduce(reducer);
+    for (var i = 1; i <= numCompartments; i++) {
+        var ele = document.createElement("a");
+        ele.classList = "dropdown-item";
+        ele.href = "#";
+        ele.innerText = "Compartment " + i;
+        ele.setAttribute('data-id' , i); 
+        document.getElementById("dropdownCompartmentsMenu").appendChild(ele);
+    }
+
     return new Promise(function (resolve, reject) {
         var completion = 0;
-        var returnBuf = new Uint8Array(buffer.byteLength);
-        jumpfloodWorker.onmessage = function(e) {
-            if (e.data[0] == 'complete') {
-                returnBuf.set(new Uint8Array(e.data[1]), 0);
-                completion += 1;
-                if (completion == 2) {
-                    resolve(returnBuf.buffer);
+        var buffers = new Array(numCompartments);
+        for (var i = 0; i < numCompartments; i++) {
+            var jumpfloodWorker = new Worker('src/workers/jumpflood-worker.js');
+            jumpfloodWorker.onmessage = function(e) {
+                if (e.data[0] == 'complete') {
+                    var returnBuf = new Uint8Array(buffer.byteLength);
+                    returnBuf.set(new Uint8Array(e.data[1]), 0);
+                    buffers[e.data[2]-1] = returnBuf; // TODO: Why is this needed??
+                    completion += 1;
+                    if (completion == numCompartments) {
+                        resolve(buffers);
+                    }
+                } else if (e.data[0] == 'progress') {
+                    sdfProgress += e.data[1] / numCompartments;
+                    progressBar.setProgress(sdfProgress * 100.0);
                 }
-            } else if (e.data[0] == 'progress') {
-                sdfProgress += e.data[1];
-                progressBar.setProgress(sdfProgress * 100.0);
             }
+            jumpfloodWorker.postMessage([buffer, 0, 150, i+1]); // *Do NOT Transfer*
         }
-        jumpfloodWorker.postMessage([buffer, 0, 75]); // *Do NOT Transfer*
-
-
-        jumpfloodWorker2.onmessage = function(e) {
-            if (e.data[0] == 'complete') {
-                returnBuf.set(new Uint8Array(e.data[1]), 1024*1024*75);
-                completion += 1;
-                if (completion == 2) {
-                    resolve(returnBuf.buffer);
-                }
-            } else if (e.data[0] == 'progress') {
-                sdfProgress += e.data[1];
-                progressBar.setProgress(sdfProgress * 100.0);
-            }
-        }
-        jumpfloodWorker2.postMessage([buffer, 75, 150], [buffer]);
     })
 }
 

@@ -231,20 +231,20 @@ function setup() {
     gl.uniformMatrix4fv(uniformModel, false, modelMatrix);
 }
 
-function createSdfTex(sdfBuffer, sdfDims) {
-    let buffer = new Uint8Array(sdfBuffer, 0, sdfBuffer.byteLength);
+var sdfBuffers = null;
+function addSdfBuffers(buffers, sdfDims) {
+    sdfBuffers = buffers;
+
     sdfTex = gl.createTexture();
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_3D, sdfTex);
-    gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R8, sdfDims[0], sdfDims[1], sdfDims[2]);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texSubImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, sdfDims[0], sdfDims[1], sdfDims[2], gl.RED, 
-        gl.UNSIGNED_BYTE, buffer);
-
+    gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8, sdfDims[0], sdfDims[1], sdfDims[2], 0, gl.RED, 
+        gl.UNSIGNED_BYTE, buffers[0]);
     gl.uniform1i(uniformSdf, 1);
 }
 
@@ -253,13 +253,12 @@ function createVolumeTex(volBuffer, volDims) {
     volumeTex = gl.createTexture();
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_3D, volumeTex);
-    gl.texStorage3D(gl.TEXTURE_3D, 1, gl.R8, volDims[0], volDims[1], volDims[2]);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texSubImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, volDims[0], volDims[1], volDims[2], gl.RED, 
+    gl.texImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, volDims[0], volDims[1], volDims[2], gl.RED, 
         gl.UNSIGNED_BYTE, buffer);
 
     gl.uniform1i(uniformVolume, 0);
@@ -281,3 +280,16 @@ function setIsovalue() {
     var elem = document.getElementById('rangeIsovalue');
     gl.uniform1f(uniformIsovalue, elem.value);
 }
+
+$(document).ready(function () {
+    $('#dropdownCompartmentsMenu').on('click', 'a', function(){
+        $("#dropdownCompartments").html($(this).html());
+        var idx = $(this).data('id')-1;
+        console.log(idx);
+        gl.bindTexture(gl.TEXTURE_3D, sdfTex);
+        gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8, 1024, 1024, 150, 0, gl.RED, 
+            gl.UNSIGNED_BYTE, sdfBuffers[idx]);
+
+        console.log(sdfBuffers[idx][142690]);
+    });
+  });

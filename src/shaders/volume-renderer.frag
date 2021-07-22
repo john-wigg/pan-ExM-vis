@@ -54,6 +54,8 @@ void main()
 	// Get clip space position
 	vec2 uv = 2.0 * gl_FragCoord.xy / resolution - 1.0;
 
+    //FragColor = texture(sdf, vec3(uv, 0.5));
+
 	vec4 clipPos = vec4(uv.xy, 1.0, 1.0); // z=1.0 ist the near plane
 
 	vec3 rayOrig = (inverse(view*model) * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -73,7 +75,7 @@ void main()
             // Simple sphere tracer.            
             float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0;
             
-            if (sdfVal < 1.0) {
+            if (sdfVal < 0.2) {
                 vec3 normal = calcNormal(rayPos / volumeSize);
                 float ldn = dot(normal, vec3(1.0, 0.0, 0.0));
                 surfaceColor = vec4(0.5, 0.5, 0.5, 1.0) + 0.5 * vec4(ldn, ldn, ldn, 1.0);
@@ -97,7 +99,7 @@ void main()
             if (!inProximity) {
                 float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0 - isovalue;
                 
-                if (sdfVal < 1.0) {
+                if (sdfVal < 0.2) {
                     inProximity = true;
                 } else {
                     dist += sdfVal;
@@ -105,7 +107,7 @@ void main()
                 }
             } else {
                 float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0 - isovalue;
-                if (sdfVal > 1.0) {
+                if (sdfVal > 0.2) {
                     inProximity = false;
                     dist += sdfVal;
                     rayPos += sdfVal * rayDir;

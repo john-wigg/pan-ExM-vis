@@ -43,7 +43,7 @@
 		<div class="modal-dialog" role="document">
 		  <div class="modal-content">
 			<div class="modal-header">
-			  <h5 class="modal-title">Loading Volume Data...</h5>
+			  <h5 class="modal-title">Loading Protein Data...</h5>
 			</div>
 			<div class="modal-body">
 				<div class="progress-list container-fluid">
@@ -98,7 +98,7 @@
 						</a>
 
 						<ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-							<li><a class="dropdown-item" href="#" onclick="loadVolumeData()">Load volume data...</a></li>
+							<li><a class="dropdown-item" href="#" onclick="loadVolumeData()">Load protein data...</a></li>
 							<li><a class="dropdown-item" href="#" onclick="loadCompartmentData()">Load compartment data...</a></li>
 						</ul>
 					</div>
@@ -125,6 +125,15 @@
 								<label class="form-check-label" for="flexSwitchCheckChecked">Display Protein
 									Distribution</label>
 								<input type="range" class="form-range" min="0" max="25" step="0.1" value="5.0" id="rangeIsovalue" oninput="setIsovalue()">
+								<div class="btn-group" role="group">
+									<a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownCompartments"
+										data-bs-toggle="dropdown" aria-expanded="false">
+										Compartment 1
+									</a>
+			
+									<ul class="dropdown-menu" id="dropdownCompartmentsMenu" aria-labelledby="dropdownCompartments">
+									</ul>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -137,6 +146,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
 integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
 crossorigin="anonymous"></script>
+<script
+  src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous"></script>
 <script src="include/gl-matrix-min.js"></script>
 <script src="src/compute/compute-jfa.js"></script>
 <script src="src/render/renderer.js"></script>
