@@ -258,7 +258,7 @@ function createVolumeTex(volBuffer, volDims) {
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage3D(gl.TEXTURE_3D, 0, 0, 0, 0, volDims[0], volDims[1], volDims[2], gl.RED, 
+    gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8, volDims[0], volDims[1], volDims[2], 0, gl.RED, 
         gl.UNSIGNED_BYTE, buffer);
 
     gl.uniform1i(uniformVolume, 0);
@@ -289,7 +289,5 @@ $(document).ready(function () {
         gl.bindTexture(gl.TEXTURE_3D, sdfTex);
         gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8, 1024, 1024, 150, 0, gl.RED, 
             gl.UNSIGNED_BYTE, sdfBuffers[idx]);
-
-        console.log(sdfBuffers[idx][142690]);
     });
   });
