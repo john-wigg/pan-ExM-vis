@@ -1,15 +1,18 @@
+import * as Renderer from "./src/js/modules/renderer.js"
+import LabeledProgressBar from "./src/js/modules/ui-helpers.js"
+
 var tiffWorker = new Worker('src/workers/decode-worker.js');
-var octreeWorker = new Worker('src/workers/octree-worker.js');
+//var octreeWorker = new Worker('src/workers/octree-worker.js');
 
 var modalLoadVolume = new bootstrap.Modal(document.getElementById('modal-load-volume'), {});
 var modalLoadCompartment = new bootstrap.Modal(document.getElementById('modal-load-compartment'), {});
 
-function loadVolumeData() {
+function loadProteinData() {
     let progressDecode = new LabeledProgressBar(document.getElementById('volume-progress-decode'), "Decode TIFF...");
     let progressLoad = new LabeledProgressBar(document.getElementById('volume-progress-load'), "Load TIFF...");
     chooseFile().then((file) => { modalLoadVolume.show(); return openTiff(file, progressLoad); })
                 .then((buffer) => { return decodeTiff(buffer, 16, progressDecode) }, (err) => {progressLoad.setError(err) })
-                .then((buffer) => { createVolumeTex(buffer, [1024, 1024, 150]); }, (err) => { progressDecode.setError(err) })
+                .then((buffer) => { Renderer.setProteinData(buffer, [1024, 1024, 150]); }, (err) => { progressDecode.setError(err) })
                 .then(() => { modalLoadVolume.hide(); });
 }
 
@@ -21,7 +24,7 @@ function loadCompartmentData() {
     chooseFile().then((file) => { modalLoadCompartment.show(); return openTiff(file, progressLoad); })
                 .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) }, (err) => { progressOpenTiff.setError(err) })
                 .then((buffer) => { return createVoronoi(buffer, progressVoronoi) }, (err) => { progressVoronoi.setError(err) })
-                .then((buffers) => { addSdfBuffers(buffers, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) })
+                .then((buffers) => { Renderer.setDistanceFieldData(buffers, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) })
                 .then(() => { modalLoadCompartment.hide(); });
                 //.then((buffer) => { return createOctree(buffer, progressOctree) }, (err) => { progressDecode.setError(err) })
 }
@@ -70,7 +73,7 @@ function decodeTiff(buffer, bits, progressBar) {
                 let progress = e.data[1];
                 progressBar.setProgress(progress);
             } else if (e.data[0] == "pixelData") {
-                resolve(e.data[1]);
+                resolve(new Uint8Array(e.data[1]));
 
             } else if (e.data[0] == "error") {
                 reject(e.data[1]);
@@ -119,7 +122,7 @@ function createVoronoi(buffer, progressBar) {
     })
 }
 
-
+/*
 function createOctree(buffer, progressBar) {
     return new Promise(function (resolve, reject) {
         octreeWorker.onmessage = function(e) {
@@ -133,4 +136,27 @@ function createOctree(buffer, progressBar) {
         }
         octreeWorker.postMessage([buffer], [buffer]); // *Transfer*
     });
-}
+}*/
+
+$(document).ready(function () {
+    $('#dropdownCompartmentsMenu').on('click', 'a', function(){
+        $("#dropdownCompartments").html($(this).html());
+        var idx = $(this).data('id')-1;
+        Renderer.setCompartmentIndex(idx)
+    });
+
+    $('#checkDisplayCompartment').change(function() {
+        Renderer.setDisplayCompartment(this.checked);
+    });
+
+    $('#checkDisplayProtein').change(function() {
+        Renderer.setDisplayProtein(this.checked);
+    });
+
+    $('#rangeIsovalue').on('input change', function() {
+        Renderer.setIsovalue(this.value);
+    });
+
+    $('#loadCompartmentData').click(loadCompartmentData);
+    $('#loadProteinData').click(loadProteinData);
+});

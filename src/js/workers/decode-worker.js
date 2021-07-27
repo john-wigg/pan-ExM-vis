@@ -3,7 +3,7 @@ onmessage = function(e) {
 }
 
 function decodeTiff(buffer, bits) {
-    importScripts('../../include/UTIF.js');
+    importScripts('./include/3rdparty/UTIF.js');
     let ifd = UTIF.decode(buffer);
     // TODO: Handling of misconfigured data.
     let width = ifd[0]['t256'];

@@ -1,11 +1,10 @@
 onmessage = function(e) {
-    importScripts('jumpflood.js');
+    importScripts('./include/jumpflood.js');
     Module.onRuntimeInitialized = () => {
         var buffer = e.data[0];
         var start = e.data[1];
         var stop = e.data[2];
         var target = e.data[3];
-        console.log("Target:", target);
         var pixelData = new Uint8Array(buffer);
         var ptr = Module._malloc(pixelData.byteLength);
         Module.HEAPU8.set(pixelData, ptr);

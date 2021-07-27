@@ -19,3 +19,5 @@ function requestFile(url, responseType) {
         request.send();
     });
 }
+
+export { requestFile };

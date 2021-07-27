@@ -1,4 +1,5 @@
 #version 300 es
+
 precision highp float;
 
 out vec4 FragColor;
@@ -53,8 +54,6 @@ void main()
 {
 	// Get clip space position
 	vec2 uv = 2.0 * gl_FragCoord.xy / resolution - 1.0;
-
-    //FragColor = texture(sdf, vec3(uv, 0.5));
 
 	vec4 clipPos = vec4(uv.xy, 1.0, 1.0); // z=1.0 ist the near plane
 

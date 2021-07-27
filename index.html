@@ -98,8 +98,8 @@
 						</a>
 
 						<ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-							<li><a class="dropdown-item" href="#" onclick="loadVolumeData()">Load protein data...</a></li>
-							<li><a class="dropdown-item" href="#" onclick="loadCompartmentData()">Load compartment data...</a></li>
+							<li><a class="dropdown-item" href="#" id="loadProteinData">Load protein data...</a></li>
+							<li><a class="dropdown-item" href="#" id="loadCompartmentData">Load compartment data...</a></li>
 						</ul>
 					</div>
 					<a class="btn btn-primary" href="#" role="button" id="toolbarAbout">
@@ -116,15 +116,15 @@
 					<div class="collapse pointer-events" id="collapseExample">
 						<div class="card card-body">
 							<div class="form-check form-switch form-switch-sm">
-								<input class="form-check-input" onclick="toggleIsosurface()" type="checkbox" checked="checked" id="checkDisplaySegmentation">
+								<input class="form-check-input" type="checkbox" checked="checked" id="checkDisplayCompartment">
 								<label class="form-check-label" for="flexSwitchCheckChecked">Display
 									Compartment Isosurface</label>
 							</div>
 							<div class="form-check form-switch form-switch-sm">
-								<input class="form-check-input" onclick="toggleVolume()" type="checkbox" checked="checked" id="checkDisplayDistribution">
+								<input class="form-check-input" type="checkbox" checked="checked" id="checkDisplayProtein">
 								<label class="form-check-label" for="flexSwitchCheckChecked">Display Protein
 									Distribution</label>
-								<input type="range" class="form-range" min="0" max="25" step="0.1" value="5.0" id="rangeIsovalue" oninput="setIsovalue()">
+								<input type="range" class="form-range" min="0" max="25" step="0.1" value="5.0" id="rangeIsovalue">
 								<div class="btn-group" role="group">
 									<a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownCompartments"
 										data-bs-toggle="dropdown" aria-expanded="false">
@@ -150,13 +150,8 @@ crossorigin="anonymous"></script>
   src="https://code.jquery.com/jquery-3.6.0.min.js"
   integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
   crossorigin="anonymous"></script>
-<script src="include/gl-matrix-min.js"></script>
 <script src="src/compute/compute-jfa.js"></script>
-<script src="src/render/renderer.js"></script>
-<script src="include/UTIF.js"></script>
-<script src="src/util/progress-bar.js"></script>
-<script src="src/util/request-file.js"></script>
-<script  src="index.js"></script>
+<script src="index.js" type="module"></script>
 <script src="https://unpkg.com/wasm-feature-detect/dist/umd/index.js"></script>
 <script type="module">
 	import { simd } from "https://unpkg.com/wasm-feature-detect?module";

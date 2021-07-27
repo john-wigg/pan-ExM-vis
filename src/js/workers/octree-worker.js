@@ -1,5 +1,5 @@
 onmessage = function(e) {
-    importScripts('octree.js');
+    importScripts('./include/octree.js');
     Module.onRuntimeInitialized = () => {
         var buffer = e.data[0];
         var pixelData = new Uint8Array(buffer);

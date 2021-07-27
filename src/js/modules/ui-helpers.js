@@ -61,3 +61,5 @@ class LabeledProgressBar {
         label.style.clipPath = "inset(0 " + (label.offsetWidth  - bar.offsetWidth) + "px 0 0)";
     }
 }
+
+export default LabeledProgressBar;
