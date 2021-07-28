@@ -12,7 +12,7 @@ function loadProteinData() {
     let progressDecode = new LabeledProgressBar(document.getElementById('volume-progress-decode'), "Decode TIFF...");
     let progressLoad = new LabeledProgressBar(document.getElementById('volume-progress-load'), "Load TIFF...");
     chooseFile().then((file) => { modalLoadVolume.show(); return openTiff(file, progressLoad); })
-                .then((buffer) => { return decodeTiff(buffer, 16, progressDecode) }, (err) => {progressLoad.setError(err) })
+                .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) }, (err) => {progressLoad.setError(err) })
                 .then((buffer) => { Renderer.setProteinData(buffer, [1024, 1024, 150]); }, (err) => { progressDecode.setError(err) })
                 .then(() => { modalLoadVolume.hide(); });
 }

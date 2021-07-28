@@ -1,5 +1,5 @@
 onmessage = function(e) {
-    importScripts('./include/jumpflood.js');
+    importScripts('./jumpflood.js');
     Module.onRuntimeInitialized = () => {
         var buffer = e.data[0];
         var start = e.data[1];

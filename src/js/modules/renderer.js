@@ -2,22 +2,24 @@ import * as twgl from './3rdparty/twgl-full.module.js';
 import * as glm from './3rdparty/gl-matrix/index.js';
 import * as util from './util/common.js'
 
-const canvas = document.querySelector('#main-canvas');
-const gl = canvas.getContext('webgl2');
+const canvas = document.querySelector('#canvas');
+const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: true});
 
-var programInfo = null;
+const mainView = document.getElementById('main-view')
+const mapView = document.getElementById('map-view')
 
 const arrays = {
     position: [-1.0, -1.0, 0.0, -1.0, 3.0, 0.0, 3.0, -1.0, 0.0],
 };
 const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 
-var projMatrix;
+var programInfo = null;
+var mapProgramInfo = null;
 
 const uniforms = {
-    model: null,
-    view: null,
-    proj: null,
+    model: glm.mat4.create(),
+    view: glm.mat4.create(),
+    proj: glm.mat4.create(),
     resolution: null,
     volumeSize: null,
     renderIsosurface: null,
@@ -26,6 +28,15 @@ const uniforms = {
     volume: 0,
     sdf: 1
 };
+
+const mapUniforms = {
+    volume: 0,
+    sdf: 1,
+    resolution: null,
+    offset: null,
+    volumeDims: [1024, 1024, 150],
+    isovalue: null
+}
 
 const distanceFieldData = {
     arrays: [],
@@ -37,31 +48,16 @@ const proteinData = {
     dims: [0, 0, 0]
 };
 
-var voxelSize = glm.vec3.fromValues(0.24, 0.24, 0.2999309);
-var volumeSize = null
+const voxelSize = glm.vec3.fromValues(0.24, 0.24, 0.2999309);
 
 var mouseSpeed = 0.5;
 var mouseX = 0.0;
 var mouseY = 0.0;
 var mouseDown = false;
 
-var modelMatrix = glm.mat4.create();
-var viewMatrix = glm.mat4.create();
-
-//
-// Start here
-//
-
 main();
 
 async function main() {
-
-    const canvasDiv = document.querySelector('#canvas-container');
-
-    resizeCanvas();
-    // Not supported in older browsers, but works nicely.
-    new ResizeObserver(resizeCanvas).observe(canvasDiv)
-
     // If we don't have a GL context, give up now
     // Only continue if WebGL is available and working
 
@@ -71,21 +67,19 @@ async function main() {
     }
 
     // Setup mouse events.
-    canvas.addEventListener('mousemove', e => {handleMouseMove(e);});
-    canvas.addEventListener('mousedown', e => {handleMouseDown(e);});
-    canvas.addEventListener('mouseup', e => {handleMouseUp(e);});
-    canvas.addEventListener('mouseout', e => {handleMouseOut(e);});
-
-    // Camera matrices.
-    projMatrix = glm.mat4.perspective(glm.mat4.create(), 60.0 * Math.PI / 180.0, gl.canvas.width/gl.canvas.height, 0.01, 10.0);
-
-    // Model matrix.
-    //var modelMatrix = glm.mat4.create();
+    mainView.addEventListener('mousemove', e => {handleMouseMove(e);});
+    mainView.addEventListener('mousedown', e => {handleMouseDown(e);});
+    mainView.addEventListener('mouseup', e => {handleMouseUp(e);});
+    mainView.addEventListener('mouseout', e => {handleMouseOut(e);});
 
     // Shaders
     const vertShaderCode = await util.requestFile("src/shaders/volume-renderer.vert", 'text');
     const fragShaderCode = await util.requestFile("src/shaders/volume-renderer.frag", 'text');
     programInfo = twgl.createProgramInfo(gl, [vertShaderCode, fragShaderCode]);
+
+    const mapVertShaderCode = await util.requestFile("src/shaders/map-renderer.vert", 'text');
+    const mapFragShaderCode = await util.requestFile("src/shaders/map-renderer.frag", 'text');
+    mapProgramInfo = twgl.createProgramInfo(gl, [mapVertShaderCode, mapFragShaderCode]);
 
     uniforms.volume = 0;
     uniforms.sdf = 1;
@@ -93,6 +87,9 @@ async function main() {
     uniforms.renderIsosurface = 1;
     uniforms.renderVolume = 1;
     uniforms.resolution = [gl.canvas.width, gl.canvas.height];
+
+    mapUniforms.isovalue = uniforms.isovalue;
+    mapUniforms.resolution = uniforms.resolution;
 
     setup();
 
@@ -121,7 +118,7 @@ function handleMouseMove(e) {
 
         var rotQuat = glm.quat.fromEuler(glm.quat.create(), 0.0, difX*mouseSpeed, -difY*mouseSpeed);
         var rotMat = glm.mat4.fromQuat(glm.mat4.create(), rotQuat)
-        modelMatrix = glm.mat4.multiply(glm.mat4.create(), rotMat, modelMatrix);
+        uniforms.model = glm.mat4.multiply(glm.mat4.create(), rotMat, uniforms.model);
 
         mouseX = e.clientX;
         mouseY = e.clientY;
@@ -130,18 +127,24 @@ function handleMouseMove(e) {
 
 function draw() {
     twgl.resizeCanvasToDisplaySize(gl.canvas);
-    var projMatrix = glm.mat4.perspective(glm.mat4.create(), 60.0 * Math.PI / 180.0, gl.canvas.width/gl.canvas.height, 0.01, 10.0);
-    // TODO: Update only when aspect changes.
-    uniforms.proj = projMatrix;
-    uniforms.view = viewMatrix;
-    uniforms.model = modelMatrix;
+    const rect = mainView.getBoundingClientRect();
+
+    const width  = rect.right - rect.left;
+    const height = rect.bottom - rect.top;
+    const left   = rect.left;
+    const bottom = gl.canvas.clientHeight - rect.bottom;
+
+    uniforms.resolution = [width, height];
     
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    uniforms.proj = glm.mat4.perspective(glm.mat4.create(), 60.0 * Math.PI / 180.0, width/height, 0.01, 10.0);
+    
+    gl.viewport(left, bottom, width, height);
+    gl.scissor(left, bottom, width, height);
 
     // Set clear color to black, fully opaque
-    gl.clearColor(0.0, 1.0, 0.0, 1.0);
+    //gl.clearColor(0.0, 1.0, 0.0, 1.0);
     // Clear the color buffer with specified clear color
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    //gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.useProgram(programInfo.program);
     twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
@@ -150,29 +153,37 @@ function draw() {
     window.requestAnimationFrame(function() {draw(); });
 }
 
-function resizeCanvas() {
-    // Resize the canvas to fit its parent div.
-    const mainCanvas = document.querySelector('#main-canvas');
-    const mainView = document.querySelector('#main-view');
-    mainCanvas.width = mainView.clientWidth;
-    mainCanvas.height = mainView.clientHeight;
+function drawMap() {
+    const rect = mapView.getBoundingClientRect();
 
-    const mapCanvas = document.querySelector('#map-canvas');
-    const mapView = document.querySelector('#map-view');
-    mapCanvas.width = mapView.clientWidth;
-    mapCanvas.height = mapView.clientHeight;
+    const width  = rect.right - rect.left;
+    const height = rect.bottom - rect.top;
+    const left   = rect.left;
+    const bottom = gl.canvas.clientHeight - rect.bottom;
+
+    mapUniforms.resolution = [width, height];
+    mapUniforms.offset = [left, bottom];
+
+    gl.viewport(left, bottom, width, height);
+    gl.scissor(left, bottom, width, height);
+
+    // Set clear color to black, fully opaque
+    //gl.clearColor(1.0, 0.0, 0.0, 1.0);
+    // Clear the color buffer with specified clear color
+    //gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.useProgram(mapProgramInfo.program);
+    twgl.setBuffersAndAttributes(gl, mapProgramInfo, bufferInfo);
+    twgl.setUniforms(mapProgramInfo, mapUniforms);
+    twgl.drawBufferInfo(gl, bufferInfo);
 }
 
 function setup() {
-    volumeSize = glm.vec3.multiply(glm.vec3.create(), voxelSize, glm.vec3.fromValues(1024, 1024, 150));
-    uniforms.volumeSize = volumeSize;
+    uniforms.volumeSize = glm.vec3.multiply(glm.vec3.create(), voxelSize, glm.vec3.fromValues(1024, 1024, 150));
 
-    var shift  = glm.vec3.multiply(glm.vec3.create(), volumeSize, glm.vec3.fromValues(-0.5, -0.5, -0.5));
-    modelMatrix = glm.mat4.fromTranslation(glm.mat4.create(), shift);
-    viewMatrix = glm.mat4.lookAt(glm.mat4.create(), glm.vec3.fromValues(1.5 * volumeSize[0], 0.0, 0.0), glm.vec3.fromValues(0.0, 0.0, 0.0), glm.vec3.fromValues(0.0, 1.0, 0.0));
-
-    uniforms.view = viewMatrix;
-    uniforms.model = modelMatrix;
+    var shift  = glm.vec3.multiply(glm.vec3.create(), uniforms.volumeSize, glm.vec3.fromValues(-0.5, -0.5, -0.5));
+    uniforms.model = glm.mat4.fromTranslation(glm.mat4.create(), shift);
+    uniforms.view = glm.mat4.lookAt(glm.mat4.create(), glm.vec3.fromValues(1.5 * uniforms.volumeSize[0], 0.0, 0.0), glm.vec3.fromValues(0.0, 0.0, 0.0), glm.vec3.fromValues(0.0, 1.0, 0.0));
 }
 
 function setDistanceFieldData(arrays, dims) {
@@ -190,6 +201,10 @@ function setDistanceFieldData(arrays, dims) {
           height: distanceFieldData.dims[1],
           depth: distanceFieldData.dims[2]
     });
+
+    mapUniforms.sdf = uniforms.sdf;
+
+    drawMap();
 }
 
 function setProteinData(array, dims) {
@@ -210,6 +225,9 @@ function setProteinData(array, dims) {
         },
     });
     uniforms.volume = textures.volume;
+    mapUniforms.volume = textures.volume;
+
+    window.requestAnimationFrame(function() {drawMap(); });
 }
 
 function setDisplayCompartment(value) {
@@ -222,6 +240,9 @@ function setDisplayProtein(value) {
 
 function setIsovalue(value) {
     uniforms.isovalue = value;
+    mapUniforms.isovalue = uniforms.isovalue;
+
+    window.requestAnimationFrame(function() {drawMap(); });
 }
 
 function setCompartmentIndex(index) {
@@ -235,6 +256,8 @@ function setCompartmentIndex(index) {
         height: 1024,
         depth: 150
     });
+
+    window.requestAnimationFrame(function() {drawMap(); });
 }
 
 export { setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex };

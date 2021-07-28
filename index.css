@@ -1,13 +1,18 @@
-#canvas-container {
+#view-container {
     position: relative;
 }
 
-#canvas-container canvas {
+#canvas {
     position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: -1;
+    display: block;
 }
 
 /* Overlay for the WebGL canvas with inside padding. */
-#canvas-container .canvas-overlay {
+#view-container .canvas-overlay {
     position: absolute;
     padding: 2em;
     box-sizing:border-box;
