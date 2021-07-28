@@ -167,3 +167,12 @@ simd().then(simdSupported => {
     alert("SIMD is not supported by your browser!");
   }
 });
+
+window.onload = () => {
+    'use strict';
+  
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+               .register('./sw.js');
+    }
+}
