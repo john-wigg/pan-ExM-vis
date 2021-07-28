@@ -1,5 +1,5 @@
 import * as Renderer from "./src/js/modules/renderer.js"
-import LabeledProgressBar from "./src/js/modules/ui-helpers.js"
+import LabeledProgressBar from "./src/js/modules/util/labelled-progress-bar.js"
 
 var tiffWorker = new Worker('src/workers/decode-worker.js');
 //var octreeWorker = new Worker('src/workers/octree-worker.js');
