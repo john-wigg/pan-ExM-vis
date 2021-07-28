@@ -1,8 +1,9 @@
 import * as Renderer from "./src/js/modules/renderer.js"
 import LabeledProgressBar from "./src/js/modules/util/labelled-progress-bar.js"
+import { simd } from "./src/js/modules/3rdparty/wasm-feature-detect.js"
 
-var tiffWorker = new Worker('src/workers/decode-worker.js');
-//var octreeWorker = new Worker('src/workers/octree-worker.js');
+var tiffWorker = new Worker('src/js/workers/decode-worker.js');
+//var octreeWorker = new Worker('src/js/workers/octree-worker.js');
 
 var modalLoadVolume = new bootstrap.Modal(document.getElementById('modal-load-volume'), {});
 var modalLoadCompartment = new bootstrap.Modal(document.getElementById('modal-load-compartment'), {});
@@ -102,7 +103,7 @@ function createVoronoi(buffer, progressBar) {
         var completion = 0;
         var buffers = new Array(numCompartments);
         for (var i = 0; i < numCompartments; i++) {
-            var jumpfloodWorker = new Worker('src/workers/jumpflood-worker.js');
+            var jumpfloodWorker = new Worker('src/js/workers/jumpflood-worker.js');
             jumpfloodWorker.onmessage = function(e) {
                 if (e.data[0] == 'complete') {
                     var returnBuf = new Uint8Array(buffer.byteLength);
@@ -159,4 +160,10 @@ $(document).ready(function () {
 
     $('#loadCompartmentData').click(loadCompartmentData);
     $('#loadProteinData').click(loadProteinData);
+});
+
+simd().then(simdSupported => {
+  if (!simdSupported) {
+    alert("SIMD is not supported by your browser!");
+  }
 });
