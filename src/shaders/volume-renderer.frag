@@ -1,11 +1,16 @@
 #version 300 es
 
+#ifdef GL_FRAGMENT_PRECISION_HIGH
 precision highp float;
+#else
+precision mediump float;
+#endif
 
 out vec4 FragColor;
 
-uniform highp sampler3D volume;
-uniform highp sampler3D sdf;
+uniform lowp sampler3D volume;
+uniform lowp sampler3D sdf;
+uniform lowp sampler2D maxInfo;
 uniform vec2 resolution;
 uniform mat4 model;
 uniform mat4 view;
@@ -93,6 +98,8 @@ void main()
         float stepSize = 0.5;
         float totalDensity = 0.0;
 
+        float maxProxAmount = 0.0;
+
         bool inProximity = false;
         while (dist < distInVolume) {
             if (!inProximity) {
@@ -114,6 +121,10 @@ void main()
                     float density = texture(volume, rayPos / volumeSize).r;
                     totalDensity += density;
 
+                    if (abs((rayPos.z / volumeSize.z) - texture(maxInfo, rayPos.xy / volumeSize.xy).g) < 0.02) {
+                        maxProxAmount += 0.1;
+                    }
+
                     dist += stepSize;
                     rayPos += stepSize * rayDir;
                 }
@@ -121,7 +132,7 @@ void main()
         }
 
         float absorption = 1.0 - exp(-totalDensity);
-        volumeColor = vec4(colormap(absorption).rgb, absorption);
+        volumeColor = mix(vec4(colormap(absorption).rgb, absorption), vec4(colormap(absorption).gbr, absorption), maxProxAmount);
     }
 
     FragColor = vec4(mix(surfaceColor.rgb, volumeColor.rgb, volumeColor.a), 1.0);

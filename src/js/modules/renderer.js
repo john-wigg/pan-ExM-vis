@@ -1,6 +1,7 @@
 import * as twgl from './3rdparty/twgl-full.module.js';
 import * as glm from './3rdparty/gl-matrix/index.js';
 import * as util from './util/common.js'
+import { floor } from './3rdparty/gl-matrix/vec3.js';
 
 const canvas = document.querySelector('#canvas');
 const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: true});
@@ -15,19 +16,7 @@ const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 
 var programInfo = null;
 var mapProgramInfo = null;
-
-const uniforms = {
-    model: glm.mat4.create(),
-    view: glm.mat4.create(),
-    proj: glm.mat4.create(),
-    resolution: null,
-    volumeSize: null,
-    renderIsosurface: null,
-    renderVolume: null,
-    isovalue: null,
-    volume: 0,
-    sdf: 1
-};
+var blitProgramInfo = null;
 
 const mapUniforms = {
     volume: 0,
@@ -46,6 +35,35 @@ const distanceFieldData = {
 const proteinData = {
     array: null,
     dims: [0, 0, 0]
+};
+
+
+const attachments = [
+    { format: gl.RGBA, type: gl.UNSIGNED_BYTE, min: gl.LINEAR, wrap: gl.CLAMP_TO_EDGE },
+    { format: gl.DEPTH_STENCIL, },
+]
+
+
+const fbi = twgl.createFramebufferInfo(gl, attachments, 1024, 1024);
+
+const blitUniforms = {
+    source: fbi.attachments[0],
+    offset: [0, 0],
+    resolution: [0, 0]
+}
+
+const uniforms = {
+    model: glm.mat4.create(),
+    view: glm.mat4.create(),
+    proj: glm.mat4.create(),
+    resolution: null,
+    volumeSize: null,
+    renderIsosurface: null,
+    renderVolume: null,
+    isovalue: null,
+    volume: 0,
+    sdf: 1,
+    maxInfo: fbi.attachments[0]
 };
 
 const voxelSize = glm.vec3.fromValues(0.24, 0.24, 0.2999309);
@@ -80,6 +98,10 @@ async function main() {
     const mapVertShaderCode = await util.requestFile("src/shaders/map-renderer.vert", 'text');
     const mapFragShaderCode = await util.requestFile("src/shaders/map-renderer.frag", 'text');
     mapProgramInfo = twgl.createProgramInfo(gl, [mapVertShaderCode, mapFragShaderCode]);
+
+    const blitVertShaderCode = await util.requestFile("src/shaders/blit.vert", 'text');
+    const blitFragShaderCode = await util.requestFile("src/shaders/blit.frag", 'text');
+    blitProgramInfo = twgl.createProgramInfo(gl, [blitVertShaderCode, blitFragShaderCode]);
 
     uniforms.volume = 0;
     uniforms.sdf = 1;
@@ -138,6 +160,7 @@ function draw() {
     
     uniforms.proj = glm.mat4.perspective(glm.mat4.create(), 60.0 * Math.PI / 180.0, width/height, 0.01, 10.0);
     
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(left, bottom, width, height);
     gl.scissor(left, bottom, width, height);
 
@@ -154,6 +177,21 @@ function draw() {
 }
 
 function drawMap() {
+    twgl.bindFramebufferInfo(gl, fbi);
+
+    gl.viewport(0, 0, 1024, 1024);
+    gl.scissor(0, 0, 1024, 1024);
+
+    mapUniforms.resolution = [1024, 1024];
+    mapUniforms.offset = [0, 0];
+
+    gl.useProgram(mapProgramInfo.program);
+    twgl.setBuffersAndAttributes(gl, mapProgramInfo, bufferInfo);
+    twgl.setUniforms(mapProgramInfo, mapUniforms);
+    twgl.drawBufferInfo(gl, bufferInfo);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
     const rect = mapView.getBoundingClientRect();
 
     const width  = rect.right - rect.left;
@@ -161,20 +199,21 @@ function drawMap() {
     const left   = rect.left;
     const bottom = gl.canvas.clientHeight - rect.bottom;
 
-    mapUniforms.resolution = [width, height];
-    mapUniforms.offset = [left, bottom];
-
     gl.viewport(left, bottom, width, height);
     gl.scissor(left, bottom, width, height);
+
+    blitUniforms.resolution = [width, height];
+    blitUniforms.offset = [left, bottom];
+    blitUniforms.source = fbi.attachments[0];
 
     // Set clear color to black, fully opaque
     //gl.clearColor(1.0, 0.0, 0.0, 1.0);
     // Clear the color buffer with specified clear color
     //gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.useProgram(mapProgramInfo.program);
-    twgl.setBuffersAndAttributes(gl, mapProgramInfo, bufferInfo);
-    twgl.setUniforms(mapProgramInfo, mapUniforms);
+    gl.useProgram(blitProgramInfo.program);
+    twgl.setBuffersAndAttributes(gl, blitProgramInfo, bufferInfo);
+    twgl.setUniforms(blitProgramInfo, blitUniforms);
     twgl.drawBufferInfo(gl, bufferInfo);
 }
 
