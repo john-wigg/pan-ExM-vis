@@ -8,7 +8,8 @@ precision mediump float;
 
 out vec4 FragColor;
 
-uniform lowp sampler2D tex;
+uniform lowp sampler2D source;
+uniform lowp sampler2D draw;
 uniform vec2 offset;
 uniform vec2 resolution;
 
@@ -22,5 +23,8 @@ void main()
 	// Get clip space position
     vec2 uv = (gl_FragCoord.xy - offset) / resolution;
 
-    FragColor = colormap(texture(tex, uv).r);
+    vec4 c = colormap(texture(source, uv).r);
+    vec4 d = colormap(texture(draw, uv).r);
+
+    FragColor = mix(0.5*c, c, d);
 }

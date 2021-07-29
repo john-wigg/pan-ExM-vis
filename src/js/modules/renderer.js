@@ -17,6 +17,7 @@ const bufferInfo = twgl.createBufferInfoFromArrays(gl, arrays);
 var programInfo = null;
 var mapProgramInfo = null;
 var blitProgramInfo = null;
+var drawProgramInfo = null;
 
 const mapUniforms = {
     volume: 0,
@@ -24,8 +25,17 @@ const mapUniforms = {
     resolution: null,
     offset: null,
     volumeDims: [1024, 1024, 150],
-    isovalue: null
-}
+    isovalue: null,
+};
+
+const drawUniforms = {
+    firstFrame: false,
+    lastPosition: [0.0, 0.0],
+    position: [0.0, 0.0],
+    depressed: false,
+    offset: [0, 0],
+    resolution: [0, 0]
+};
 
 const distanceFieldData = {
     arrays: [],
@@ -43,8 +53,13 @@ const attachments = [
     { format: gl.DEPTH_STENCIL, },
 ]
 
+const drawAttachments = [
+    { format: gl.RGBA, type: gl.UNSIGNED_BYTE, min: gl.LINEAR, wrap: gl.CLAMP_TO_EDGE },
+    { format: gl.DEPTH_STENCIL, },
+]
 
 const fbi = twgl.createFramebufferInfo(gl, attachments, 1024, 1024);
+const drawFbi = twgl.createFramebufferInfo(gl, drawAttachments, 1024, 1024);
 
 const blitUniforms = {
     source: fbi.attachments[0],
@@ -63,7 +78,8 @@ const uniforms = {
     isovalue: null,
     volume: 0,
     sdf: 1,
-    maxInfo: fbi.attachments[0]
+    maxInfo: fbi.attachments[0],
+    draw: drawFbi.attachments[0]
 };
 
 const voxelSize = glm.vec3.fromValues(0.24, 0.24, 0.2999309);
@@ -90,6 +106,11 @@ async function main() {
     mainView.addEventListener('mouseup', e => {handleMouseUp(e);});
     mainView.addEventListener('mouseout', e => {handleMouseOut(e);});
 
+    mapView.addEventListener('mousemove', e => { mapHandleMouseMove(e); });
+    mapView.addEventListener('mousedown', e => { mapHandleMouseDown(e);});
+    mapView.addEventListener('mouseup', e => { mapHandleMouseUp(e);});
+    mapView.addEventListener('mouseout', e => { mapHandleMouseOut(e);});
+
     // Shaders
     const vertShaderCode = await util.requestFile("src/shaders/volume-renderer.vert", 'text');
     const fragShaderCode = await util.requestFile("src/shaders/volume-renderer.frag", 'text');
@@ -103,6 +124,10 @@ async function main() {
     const blitFragShaderCode = await util.requestFile("src/shaders/blit.frag", 'text');
     blitProgramInfo = twgl.createProgramInfo(gl, [blitVertShaderCode, blitFragShaderCode]);
 
+    const drawVertShaderCode = await util.requestFile("src/shaders/draw.vert", 'text');
+    const drawFragShaderCode = await util.requestFile("src/shaders/draw.frag", 'text');
+    drawProgramInfo = twgl.createProgramInfo(gl, [drawVertShaderCode, drawFragShaderCode]);
+
     uniforms.volume = 0;
     uniforms.sdf = 1;
     uniforms.isovalue = 5.0;
@@ -115,11 +140,14 @@ async function main() {
 
     setup();
 
+    drawUniforms.firstFrame = true;
+    window.requestAnimationFrame(function() {drawDraw(); drawUniforms.firstFrame = false;});
+    
+
     window.requestAnimationFrame(function() {draw(); });
 }
 
 function handleMouseDown(e) {
-    console.log("Mouse down")
     mouseX = e.clientX;
     mouseY = e.clientY;
     mouseDown = true;
@@ -144,6 +172,37 @@ function handleMouseMove(e) {
 
         mouseX = e.clientX;
         mouseY = e.clientY;
+    }
+}
+
+function mapHandleMouseDown(e) {
+    const rect = mapView.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / (rect.right - rect.left); //x position within the element.
+    const y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top); //y position within the element.
+    drawUniforms.position = [x, y];
+    drawUniforms.lastPosition = drawUniforms.position;
+    drawUniforms.depressed = true;
+    window.requestAnimationFrame(function() {drawDraw(); });
+}
+
+function mapHandleMouseUp(e) {
+    drawUniforms.depressed = false;
+    window.requestAnimationFrame(function() {drawDraw(); });
+}
+
+
+function mapHandleMouseOut(e) {
+    drawUniforms.depressed = false;
+}
+
+function mapHandleMouseMove(e) {
+    if (drawUniforms.depressed) {
+        const rect = mapView.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / (rect.right - rect.left); //x position within the element.
+        const y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top); //y position within the element.
+        drawUniforms.lastPosition = drawUniforms.position;
+        drawUniforms.position = [x, y];
+        window.requestAnimationFrame(function() {drawDraw(); });
     }
 }
 
@@ -176,6 +235,25 @@ function draw() {
     window.requestAnimationFrame(function() {draw(); });
 }
 
+function drawDraw() {
+    twgl.bindFramebufferInfo(gl, drawFbi);
+
+    gl.viewport(0, 0, 1024, 1024);
+    gl.scissor(0, 0, 1024, 1024);
+
+    drawUniforms.resolution = [1024, 1024];
+    drawUniforms.offset = [0, 0];
+
+    gl.useProgram(drawProgramInfo.program);
+    twgl.setBuffersAndAttributes(gl, drawProgramInfo, bufferInfo);
+    twgl.setUniforms(drawProgramInfo, drawUniforms);
+    twgl.drawBufferInfo(gl, bufferInfo);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    drawBlit();
+}
+
 function drawMap() {
     twgl.bindFramebufferInfo(gl, fbi);
 
@@ -192,6 +270,10 @@ function drawMap() {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+    drawBlit();
+}
+
+function drawBlit() {
     const rect = mapView.getBoundingClientRect();
 
     const width  = rect.right - rect.left;
@@ -205,11 +287,7 @@ function drawMap() {
     blitUniforms.resolution = [width, height];
     blitUniforms.offset = [left, bottom];
     blitUniforms.source = fbi.attachments[0];
-
-    // Set clear color to black, fully opaque
-    //gl.clearColor(1.0, 0.0, 0.0, 1.0);
-    // Clear the color buffer with specified clear color
-    //gl.clear(gl.COLOR_BUFFER_BIT);
+    blitUniforms.draw = drawFbi.attachments[0];
 
     gl.useProgram(blitProgramInfo.program);
     twgl.setBuffersAndAttributes(gl, blitProgramInfo, bufferInfo);

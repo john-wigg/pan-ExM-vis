@@ -11,6 +11,7 @@ out vec4 FragColor;
 uniform lowp sampler3D volume;
 uniform lowp sampler3D sdf;
 uniform lowp sampler2D maxInfo;
+uniform lowp sampler2D draw;
 uniform vec2 resolution;
 uniform mat4 model;
 uniform mat4 view;
@@ -122,7 +123,7 @@ void main()
                     totalDensity += density;
 
                     if (abs((rayPos.z / volumeSize.z) - texture(maxInfo, rayPos.xy / volumeSize.xy).g) < 0.02) {
-                        maxProxAmount += 0.1;
+                        maxProxAmount += texture(draw, rayPos.xy / volumeSize.xy).r * 0.1;
                     }
 
                     dist += stepSize;
