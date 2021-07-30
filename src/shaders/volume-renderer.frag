@@ -42,6 +42,10 @@ vec4 colormap(float x) {
     return vec4(clamp(x, 0.0, 1.0), clamp(0.5 * x + 0.5, 0.0, 1.0), 0.4, 1.0);
 }
 
+vec4 matlab_spring(float x) {
+    return vec4(1.0, clamp(x, 0.0, 1.0), clamp(1.0 - x, 0.0, 1.0), 1.0);
+}
+
 float f(vec3 p) {
     return texture(sdf, p).r * 100.0;
 }
@@ -98,8 +102,7 @@ void main()
         float dist = 0.0;
         float stepSize = 0.5;
         float totalDensity = 0.0;
-
-        float maxProxAmount = 0.0;
+        vec4 totalColor = vec4(0.0);
 
         bool inProximity = false;
         while (dist < distInVolume) {
@@ -119,12 +122,18 @@ void main()
                     dist += sdfVal;
                     rayPos += sdfVal * rayDir;
                 } else {
+                    // Actually sample volume.
                     float density = texture(volume, rayPos / volumeSize).r;
-                    totalDensity += density;
 
-                    if (abs((rayPos.z / volumeSize.z) - texture(maxInfo, rayPos.xy / volumeSize.xy).g) < 0.02) {
-                        maxProxAmount += texture(draw, rayPos.xy / volumeSize.xy).r * density;
-                    }
+                    vec3 uvw = rayPos / volumeSize;
+                    float distanceToMaximum = clamp(1.0 - abs(uvw.z - texture(maxInfo, uvw.xy).g) / 0.025, 0.0, 1.0);
+                    float selectionMask = texture(draw, uvw.xy).r;
+
+                    float highlight = distanceToMaximum * selectionMask;
+                    vec4 color = mix(colormap(density), 5.0 * matlab_spring(density), highlight);
+
+                    totalDensity += density * stepSize;
+                    totalColor += density * color * stepSize * exp(-totalDensity);
 
                     dist += stepSize;
                     rayPos += stepSize * rayDir;
@@ -133,7 +142,7 @@ void main()
         }
 
         float absorption = 1.0 - exp(-totalDensity);
-        volumeColor = mix(vec4(colormap(absorption).rgb, absorption), vec4(colormap(absorption).gbr, absorption), maxProxAmount);
+        volumeColor = totalColor;
     }
 
     FragColor = vec4(mix(surfaceColor.rgb, volumeColor.rgb, volumeColor.a), 1.0);

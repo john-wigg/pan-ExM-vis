@@ -1,7 +1,6 @@
 import * as twgl from './3rdparty/twgl-full.module.js';
 import * as glm from './3rdparty/gl-matrix/index.js';
 import * as util from './util/common.js'
-import { floor } from './3rdparty/gl-matrix/vec3.js';
 
 const canvas = document.querySelector('#canvas');
 const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: true});
