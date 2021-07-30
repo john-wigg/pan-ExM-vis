@@ -123,7 +123,7 @@ void main()
                     totalDensity += density;
 
                     if (abs((rayPos.z / volumeSize.z) - texture(maxInfo, rayPos.xy / volumeSize.xy).g) < 0.02) {
-                        maxProxAmount += texture(draw, rayPos.xy / volumeSize.xy).r * 0.1;
+                        maxProxAmount += texture(draw, rayPos.xy / volumeSize.xy).r * density;
                     }
 
                     dist += stepSize;

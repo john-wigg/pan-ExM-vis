@@ -158,6 +158,10 @@ $(document).ready(function () {
         Renderer.setIsovalue(this.value);
     });
 
+    $('#deleteSelection').click(function() {
+        Renderer.deleteSelection();
+    });
+
     $('#loadCompartmentData').click(loadCompartmentData);
     $('#loadProteinData').click(loadProteinData);
 });

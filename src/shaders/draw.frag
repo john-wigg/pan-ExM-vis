@@ -32,7 +32,7 @@ void main()
 
     vec2 uv = (gl_FragCoord.xy - offset) / resolution;
 
-    if (sdSegment(uv, position, lastPosition) < 0.025 && depressed) {
+    if (sdSegment(uv, position, lastPosition) < 0.015 && depressed) {
         FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     } else {
         discard;

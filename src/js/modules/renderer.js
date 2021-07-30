@@ -141,7 +141,7 @@ async function main() {
     setup();
 
     drawUniforms.firstFrame = true;
-    window.requestAnimationFrame(function() {drawDraw(); drawUniforms.firstFrame = false;});
+    window.requestAnimationFrame(function() {drawSelection(); drawUniforms.firstFrame = false;});
     
 
     window.requestAnimationFrame(function() {draw(); });
@@ -182,12 +182,12 @@ function mapHandleMouseDown(e) {
     drawUniforms.position = [x, y];
     drawUniforms.lastPosition = drawUniforms.position;
     drawUniforms.depressed = true;
-    window.requestAnimationFrame(function() {drawDraw(); });
+    window.requestAnimationFrame(function() {drawSelection(); });
 }
 
 function mapHandleMouseUp(e) {
     drawUniforms.depressed = false;
-    window.requestAnimationFrame(function() {drawDraw(); });
+    window.requestAnimationFrame(function() {drawSelection(); });
 }
 
 
@@ -202,7 +202,7 @@ function mapHandleMouseMove(e) {
         const y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top); //y position within the element.
         drawUniforms.lastPosition = drawUniforms.position;
         drawUniforms.position = [x, y];
-        window.requestAnimationFrame(function() {drawDraw(); });
+        window.requestAnimationFrame(function() {drawSelection(); });
     }
 }
 
@@ -235,7 +235,7 @@ function draw() {
     window.requestAnimationFrame(function() {draw(); });
 }
 
-function drawDraw() {
+function drawSelection() {
     twgl.bindFramebufferInfo(gl, drawFbi);
 
     gl.viewport(0, 0, 1024, 1024);
@@ -362,6 +362,10 @@ function setIsovalue(value) {
     window.requestAnimationFrame(function() {drawMap(); });
 }
 
+function deleteSelection() {
+    window.requestAnimationFrame(function() {drawUniforms.firstFrame = true; drawSelection(); drawUniforms.firstFrame = false; });
+}
+
 function setCompartmentIndex(index) {
     twgl.setTextureFromArray(gl, uniforms.sdf, distanceFieldData.arrays[index],{
         target: gl.TEXTURE_3D,
@@ -377,4 +381,4 @@ function setCompartmentIndex(index) {
     window.requestAnimationFrame(function() {drawMap(); });
 }
 
-export { setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex };
+export { setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, deleteSelection };
