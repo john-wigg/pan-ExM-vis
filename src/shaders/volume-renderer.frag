@@ -133,7 +133,10 @@ void main()
                     vec4 color = mix(colormap(density), 5.0 * matlab_spring(density), highlight);
 
                     totalDensity += density * stepSize;
-                    totalColor += density * color * stepSize * exp(-totalDensity);
+                    //totalColor += density * color * stepSize * exp(-totalDensity);
+                    totalColor = totalColor * (1.0 - density * stepSize) + color * density * stepSize;
+
+                    if (totalDensity > 999.9) break;
 
                     dist += stepSize;
                     rayPos += stepSize * rayDir;
