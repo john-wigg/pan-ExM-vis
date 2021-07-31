@@ -132,20 +132,15 @@ void main()
                     float highlight = distanceToMaximum * selectionMask;
                     vec4 color = mix(colormap(density), 5.0 * matlab_spring(density), highlight);
 
-                    totalDensity += density * stepSize;
-                    //totalColor += density * color * stepSize * exp(-totalDensity);
-                    totalColor = totalColor * (1.0 - density * stepSize) + color * density * stepSize;
-
-                    if (totalDensity > 999.9) break;
+                    totalColor = totalColor + density * color * (1.0 - totalDensity);
+                    totalDensity = totalDensity + density * (1.0 - totalDensity);
 
                     dist += stepSize;
                     rayPos += stepSize * rayDir;
                 }
             }
         }
-
-        float absorption = 1.0 - exp(-totalDensity);
-        volumeColor = totalColor;
+        volumeColor = vec4(totalColor.rgb, totalDensity);
     }
 
     FragColor = vec4(mix(surfaceColor.rgb, volumeColor.rgb, volumeColor.a), 1.0);
