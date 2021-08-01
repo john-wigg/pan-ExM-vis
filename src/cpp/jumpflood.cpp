@@ -98,12 +98,13 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
 
         // 2. Run JFA on the slice
         for (int s = n; s > 0; s = s >> 1) {
+
             for (int j = 0; j < height; ++j) {
                 for (int i = 0; i < width; i += 4) {
                     int center = pad + j*3*width+i;
 
                     v128_t v_i = wasm_f32x4_make(i, i+1, i+2, i+3);
-                    v128_t v_j = wasm_f32x4_make(j, j+1, j+2, j+3);
+                    v128_t v_j = wasm_f32x4_splat(j);
 
                     v128_t v_lx = wasm_v128_load(&sites_x[center-s]);
                     v128_t v_ly = wasm_v128_load(&sites_y[center-s]);
@@ -163,28 +164,29 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                     wasm_v128_store(&sites_z_tmp[center], v_z);
                 }
             }
+            
 
             sites_x.swap(sites_x_tmp);
             sites_y.swap(sites_y_tmp);
             sites_z.swap(sites_z_tmp);
-
-            for (short j = 0; j < height; ++j) {
-                for (short i = 0; i < width; i += 4) {
+            
+            for (int j = 0; j < height; ++j) {
+                for (int i = 0; i < width; i += 4) {
                     int center = pad + j*3*width+i;
 
                     v128_t v_i = wasm_f32x4_make(i, i+1, i+2, i+3);
-                    v128_t v_j = wasm_f32x4_make(j, j+1, j+2, j+3);
+                    v128_t v_j = wasm_f32x4_splat(j);
 
                     v128_t v_lx = wasm_v128_load(&sites_x[center-3*width*s]);
-                    v128_t v_rx = wasm_v128_load(&sites_x[center+3*width*s]);
-                    v128_t v_cx = wasm_v128_load(&sites_x[center]);
-
                     v128_t v_ly = wasm_v128_load(&sites_y[center-3*width*s]);
-                    v128_t v_ry = wasm_v128_load(&sites_y[center+3*width*s]);
-                    v128_t v_cy = wasm_v128_load(&sites_y[center]);
-
                     v128_t v_lz = wasm_v128_load(&sites_z[center-3*width*s]);
+
+                    v128_t v_rx = wasm_v128_load(&sites_x[center+3*width*s]);
+                    v128_t v_ry = wasm_v128_load(&sites_y[center+3*width*s]);
                     v128_t v_rz = wasm_v128_load(&sites_z[center+3*width*s]);
+
+                    v128_t v_cx = wasm_v128_load(&sites_x[center]);
+                    v128_t v_cy = wasm_v128_load(&sites_y[center]);
                     v128_t v_cz = wasm_v128_load(&sites_z[center]);
 
                     v128_t v_sx = wasm_f32x4_splat(voxelSize[0]);
@@ -236,7 +238,7 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
 
             sites_x.swap(sites_x_tmp);
             sites_y.swap(sites_y_tmp);
-            sites_z.swap(sites_z_tmp);   
+            sites_z.swap(sites_z_tmp);
         }
         
         for (int j = 0; j < height; j++) {
