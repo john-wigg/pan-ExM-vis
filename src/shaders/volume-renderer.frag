@@ -84,7 +84,7 @@ void main()
             // Simple sphere tracer.            
             float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0;
             
-            if (sdfVal < 0.2) {
+            if (sdfVal < 0.01) {
                 vec3 normal = calcNormal(rayPos / volumeSize);
                 float ldn = dot(normal, vec3(1.0, 0.0, 0.0));
                 surfaceColor = vec4(0.5, 0.5, 0.5, 1.0) + 0.5 * vec4(ldn, ldn, ldn, 1.0);
@@ -94,7 +94,7 @@ void main()
             dist += sdfVal;
             rayPos += sdfVal * rayDir;
         }
-        distInVolume = dist;
+        distInVolume = min(dist, boxDst.y);
     }
 
     if (renderVolume) {
@@ -109,7 +109,7 @@ void main()
             if (!inProximity) {
                 float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0 - isovalue;
                 
-                if (sdfVal < 0.2) {
+                if (sdfVal < 0.01) {
                     inProximity = true;
                 } else {
                     dist += sdfVal;
@@ -117,7 +117,7 @@ void main()
                 }
             } else {
                 float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0 - isovalue;
-                if (sdfVal > 0.2) {
+                if (sdfVal > 0.01) {
                     inProximity = false;
                     dist += sdfVal;
                     rayPos += sdfVal * rayDir;
