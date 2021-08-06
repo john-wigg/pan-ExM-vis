@@ -8,7 +8,7 @@ function decodeTiff(buffer, bits) {
     // TODO: Handling of misconfigured data.
     let width = ifd[0]['t256'];
     let height = ifd[0]['t257'];
-    let bps = ifd[0]['t258']; // should be 16
+    let bps = ifd[0]['t258']; // should be bits
     let pi = ifd[0]['t262']; // should be 1
     let spp = ifd[0]['t277']; // should be 1
 
@@ -43,5 +43,5 @@ function decodeTiff(buffer, bits) {
         return;
     }
 
-    postMessage(["pixelData", pixels.buffer], [pixels.buffer]);
+    postMessage(["pixelData", pixels.buffer, width, height, ifd.length], [pixels.buffer]);
 }

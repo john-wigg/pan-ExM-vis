@@ -12,9 +12,11 @@ function loadProteinData() {
     let progressDecode = new LabeledProgressBar(document.getElementById('volume-progress-decode'), "Decode TIFF...");
     let progressLoad = new LabeledProgressBar(document.getElementById('volume-progress-load'), "Load TIFF...");
     chooseFile().then((file) => { modalLoadVolume.show(); return openTiff(file, progressLoad); })
-                .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) }, (err) => {progressLoad.setError(err) })
-                .then((buffer) => { Renderer.setProteinData(buffer, [1024, 1024, 150]); }, (err) => { progressDecode.setError(err) })
-                .then(() => { modalLoadVolume.hide(); });
+                    .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) })
+                        .then((data) => { Renderer.setProteinData(data.buffer, [data.width, data.height, data.depth]); })
+                        .then(() => { modalLoadVolume.hide(); })
+                    .catch((err) => { progressDecode.setError(err) })
+                .catch((err) => {progressLoad.setError(err) })
 }
 
 function loadCompartmentData() {
@@ -23,10 +25,12 @@ function loadCompartmentData() {
     //let progressOctree = new LabeledProgressBar(document.getElementById('compartment-progress-octree'), "Create Octree...");
     let progressVoronoi = new LabeledProgressBar(document.getElementById('compartment-progress-voronoi'), "Generate Distance Field...");
     chooseFile().then((file) => { modalLoadCompartment.show(); return openTiff(file, progressLoad); })
-                .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) }, (err) => { progressOpenTiff.setError(err) })
-                .then((buffer) => { return createVoronoi(buffer, progressVoronoi) }, (err) => { progressVoronoi.setError(err) })
-                .then((buffers) => { Renderer.setDistanceFieldData(buffers, [1024, 1024, 150]); }, (err) => { progressVoronoi.setError(err) })
-                .then(() => { modalLoadCompartment.hide(); });
+                .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) })
+                    .then((data) => { return createVoronoi(data.buffer, data.width, data.height, data.depth, progressVoronoi) })
+                        .then((data) => { Renderer.setDistanceFieldData(data.buffers, [data.width, data.height, data.depth]); })
+                        .then(() => { modalLoadCompartment.hide(); })
+                    .catch((err) => { progressVoronoi.setError(err) })
+                .catch((err) => { progressOpenTiff.setError(err) })
                 //.then((buffer) => { return createOctree(buffer, progressOctree) }, (err) => { progressDecode.setError(err) })
 }
 
@@ -74,7 +78,7 @@ function decodeTiff(buffer, bits, progressBar) {
                 let progress = e.data[1];
                 progressBar.setProgress(progress);
             } else if (e.data[0] == "pixelData") {
-                resolve(new Uint8Array(e.data[1]));
+                resolve({"buffer": new Uint8Array(e.data[1]), "width": e.data[2], "height": e.data[3], "depth": e.data[4]});
 
             } else if (e.data[0] == "error") {
                 reject(e.data[1]);
@@ -86,7 +90,7 @@ function decodeTiff(buffer, bits, progressBar) {
 }
 
 var sdfProgress = 0.0;
-function createVoronoi(buffer, progressBar) {
+function createVoronoi(buffer, width, height, depth, progressBar) {
     var voxels = new Uint8Array(buffer);
     const reducer = (accumulator, currentValue) => Math.max(accumulator, currentValue);
     var numCompartments = voxels.reduce(reducer);
@@ -111,14 +115,14 @@ function createVoronoi(buffer, progressBar) {
                     buffers[e.data[2]-1] = returnBuf; // TODO: Why is this needed??
                     completion += 1;
                     if (completion == numCompartments) {
-                        resolve(buffers);
+                        resolve({"buffers": buffers, "width": width, "height": height, "depth": depth});
                     }
                 } else if (e.data[0] == 'progress') {
                     sdfProgress += e.data[1] / numCompartments;
                     progressBar.setProgress(sdfProgress * 100.0);
                 }
             }
-            jumpfloodWorker.postMessage([buffer, 0, 150, i+1]); // *Do NOT Transfer*
+            jumpfloodWorker.postMessage([buffer, 0, depth, i+1]); // *Do NOT Transfer*
         }
     })
 }

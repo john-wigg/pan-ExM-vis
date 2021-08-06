@@ -1,6 +1,7 @@
 import * as twgl from './3rdparty/twgl-full.module.js';
 import * as glm from './3rdparty/gl-matrix/index.js';
 import * as util from './util/common.js'
+import { dist } from './3rdparty/gl-matrix/vec3.js';
 
 const canvas = document.querySelector('#canvas');
 const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: true});
@@ -23,7 +24,7 @@ const mapUniforms = {
     sdf: 1,
     resolution: null,
     offset: null,
-    volumeDims: [1024, 1024, 150],
+    volumeDims: [0, 0, 0],
     isovalue: null,
 };
 
@@ -88,6 +89,10 @@ var mouseX = 0.0;
 var mouseY = 0.0;
 var mouseDown = false;
 
+var modelRotation = glm.quat.create();
+var modelScale = glm.vec3.create();
+var modelTranslation = glm.vec3.create();
+
 main();
 
 async function main() {
@@ -104,6 +109,7 @@ async function main() {
     mainView.addEventListener('mousedown', e => {handleMouseDown(e);});
     mainView.addEventListener('mouseup', e => {handleMouseUp(e);});
     mainView.addEventListener('mouseout', e => {handleMouseOut(e);});
+    mainView.addEventListener('wheel', e => {handleScroll(e);});
 
     mapView.addEventListener('mousemove', e => { mapHandleMouseMove(e); });
     mapView.addEventListener('mousedown', e => { mapHandleMouseDown(e);});
@@ -137,7 +143,7 @@ async function main() {
     mapUniforms.isovalue = uniforms.isovalue;
     mapUniforms.resolution = uniforms.resolution;
 
-    setup();
+    setup(0, 0, 0);
 
     drawUniforms.firstFrame = true;
     window.requestAnimationFrame(function() {drawSelection(); drawUniforms.firstFrame = false;});
@@ -164,14 +170,24 @@ function handleMouseMove(e) {
     if (mouseDown) {
         var difX = e.clientX - mouseX;
         var difY = e.clientY - mouseY;
-
+        
         var rotQuat = glm.quat.fromEuler(glm.quat.create(), 0.0, difX*mouseSpeed, -difY*mouseSpeed);
-        var rotMat = glm.mat4.fromQuat(glm.mat4.create(), rotQuat)
-        uniforms.model = glm.mat4.multiply(glm.mat4.create(), rotMat, uniforms.model);
+        glm.quat.multiply(modelRotation, rotQuat, modelRotation);
+
+        console.log(modelTranslation);
+
+        glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
+    
 
         mouseX = e.clientX;
         mouseY = e.clientY;
     }
+}
+
+function handleScroll(e) {
+    let scale = 1.0 + e.deltaY / 400.0;
+    glm.vec3.scale(modelScale, modelScale, scale);
+    glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
 }
 
 function mapHandleMouseDown(e) {
@@ -294,11 +310,15 @@ function drawBlit() {
     twgl.drawBufferInfo(gl, bufferInfo);
 }
 
-function setup() {
-    uniforms.volumeSize = glm.vec3.multiply(glm.vec3.create(), voxelSize, glm.vec3.fromValues(1024, 1024, 150));
+function setup(width, height, depth) {
+    uniforms.volumeSize = glm.vec3.multiply(glm.vec3.create(), voxelSize, glm.vec3.fromValues(width, height, depth));
+    mapUniforms.volumeDims = [width, height, depth]
 
-    var shift  = glm.vec3.multiply(glm.vec3.create(), uniforms.volumeSize, glm.vec3.fromValues(-0.5, -0.5, -0.5));
-    uniforms.model = glm.mat4.fromTranslation(glm.mat4.create(), shift);
+    
+    glm.vec3.multiply(modelTranslation, uniforms.volumeSize, glm.vec3.fromValues(0.5, 0.5, 0.5));
+    modelScale = glm.vec3.fromValues(1.0, 1.0, 1.0);
+    
+    glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
     uniforms.view = glm.mat4.lookAt(glm.mat4.create(), glm.vec3.fromValues(1.5 * uniforms.volumeSize[0], 0.0, 0.0), glm.vec3.fromValues(0.0, 0.0, 0.0), glm.vec3.fromValues(0.0, 1.0, 0.0));
 }
 
@@ -308,7 +328,7 @@ function setDistanceFieldData(arrays, dims) {
 
     uniforms.sdf = twgl.createTexture(gl, {
           target: gl.TEXTURE_3D,
-          mag: gl.NEAREST,
+          mag: gl.LINEAR,
           min: gl.LINEAR,
           internalFormat: gl.R8,
           format: gl.RED,
@@ -330,7 +350,7 @@ function setProteinData(array, dims) {
         // a 1x8 pixel texture from a typed array.
         volume: {
           target: gl.TEXTURE_3D,
-          mag: gl.NEAREST,
+          mag: gl.LINEAR,
           min: gl.LINEAR,
           internalFormat: gl.R8,
           format: gl.RED,
@@ -342,6 +362,8 @@ function setProteinData(array, dims) {
     });
     uniforms.volume = textures.volume;
     mapUniforms.volume = textures.volume;
+
+    setup(proteinData.dims[0], proteinData.dims[1], proteinData.dims[2]);
 
     window.requestAnimationFrame(function() {drawMap(); });
 }
@@ -368,13 +390,13 @@ function deleteSelection() {
 function setCompartmentIndex(index) {
     twgl.setTextureFromArray(gl, uniforms.sdf, distanceFieldData.arrays[index],{
         target: gl.TEXTURE_3D,
-        mag: gl.NEAREST,
+        mag: gl.LINEAR,
         min: gl.LINEAR,
         internalFormat: gl.R8,
         format: gl.RED,
-        width: 1024,
-        height: 1024,
-        depth: 150
+        width: distanceFieldData.dims[0],
+        height: distanceFieldData.dims[1],
+        depth: distanceFieldData.dims[2]
     });
 
     window.requestAnimationFrame(function() {drawMap(); });
