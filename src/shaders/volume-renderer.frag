@@ -47,17 +47,20 @@ vec4 matlab_spring(float x) {
 }
 
 float f(vec3 p) {
-    return texture(sdf, p).r * 100.0;
+    return texture(sdf, p).r * 255.0 / 10.0 - 5.0 - isovalue;
 }
 
-vec3 calcNormal(vec3 p) // for function f(p)
+void calcNormalAndCurv(vec3 p, out vec3 normal, out float curv) // for function f(p)
 {
-    vec3 h = 0.00005 * volumeSize; // replace by an appropriate value
-    const vec2 k = vec2(1,-1);
-    return normalize( k.xyy*f( p + k.xyy*h ) + 
-                      k.yyx*f( p + k.yyx*h ) + 
-                      k.yxy*f( p + k.yxy*h ) + 
-                      k.xxx*f( p + k.xxx*h ) );
+    float h = 2.0; 
+    vec2 k = h * vec2(1., 0.);
+
+    float t1 = f(p + k.xyy/volumeSize); float t2 = f(p - k.xyy/volumeSize);
+    float t3 = f(p + k.yxy/volumeSize); float t4 = f(p - k.yxy/volumeSize);
+    float t5 = f(p + k.yxx/volumeSize); float t6 = f(p - k.yxx/volumeSize);
+
+    curv = (t1+t2+t3+t4+t5+t6-6.0*f(p))/(h*h);
+    normal = normalize(k.xyy * (t1-t2) + k.yxy * (t3-t4) + k.yyx * (t5-t6));
 }
 
 void main()
@@ -82,12 +85,15 @@ void main()
         float dist = 0.0;
         while (dist < distInVolume) {
             // Simple sphere tracer.            
-            float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0;
+            float sdfVal = f(rayPos / volumeSize);
             
             if (sdfVal < 0.01) {
-                vec3 normal = calcNormal(rayPos / volumeSize);
+                float curv;
+                vec3 normal;
+                calcNormalAndCurv(rayPos / volumeSize, normal, curv);
                 float ldn = dot(normal, vec3(1.0, 0.0, 0.0));
-                surfaceColor = vec4(0.5, 0.5, 0.5, 1.0) + 0.5 * vec4(ldn, ldn, ldn, 1.0);
+                //surfaceColor = vec4(1.0, 1.0 - 0.5*abs(-curv), 1.0 - 0.5*abs(-curv), 1.0);
+                surfaceColor = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0), 0.5 + 0.5 * ldn);
                 break;
             }
 
@@ -107,7 +113,7 @@ void main()
         bool inProximity = false;
         while (dist < distInVolume) {
             if (!inProximity) {
-                float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0 - isovalue;
+                float sdfVal = f(rayPos / volumeSize);
                 
                 if (sdfVal < 0.01) {
                     inProximity = true;
@@ -116,7 +122,7 @@ void main()
                     rayPos += sdfVal * rayDir;
                 }
             } else {
-                float sdfVal = texture(sdf, rayPos / volumeSize).r * 255.0 / 10.0 - isovalue;
+                float sdfVal = f(rayPos / volumeSize);
                 if (sdfVal > 0.01) {
                     inProximity = false;
                     dist += sdfVal;

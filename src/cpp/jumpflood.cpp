@@ -16,6 +16,7 @@ extern "C" {
 const float voxelSize[3] = { 0.24, 0.24, 0.2999309 };
 
 unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int start, int stop, unsigned char target) {
+    target = 0;
     int d = stop - start;
 
     std::vector<unsigned char> sdf(width * height * d, 0);
@@ -117,6 +118,10 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
 
                     v128_t v_i = wasm_f32x4_make(i, i+1, i+2, i+3);
                     v128_t v_j = wasm_f32x4_splat(j);
+                    v128_t v_li = wasm_f32x4_make(i-s, i-s+1, i-s+2, i-s+3);
+                    v128_t v_ri = wasm_f32x4_make(i+s, i+s+1, i+s+2, i+s+3);
+                    v128_t v_zero = wasm_f32x4_splat(0.0);
+
 
                     v128_t v_inside = wasm_i32x4_gt(wasm_i32x4_make(inside[center], inside[center+1], inside[center+2], inside[center+3]), wasm_i32x4_splat(0));
                     v128_t v_linside = wasm_i32x4_gt(wasm_i32x4_make(inside[center-s], inside[center-s+1], inside[center-s+2], inside[center-s+3]), wasm_i32x4_splat(0));
@@ -126,29 +131,37 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                     v128_t v_cy = wasm_v128_load(&sites_y[center]);
                     v128_t v_cz = wasm_v128_load(&sites_z[center]);
 
-                    if (wasm_i32x4_all_true(v_inside)) {
-                        wasm_v128_store(&sites_x_tmp[center], v_cx);
-                        wasm_v128_store(&sites_y_tmp[center], v_cy);
-                        wasm_v128_store(&sites_z_tmp[center], wasm_f32x4_splat(0));
-                        continue;
-                    }
+                    v128_t v_lsx = wasm_v128_load(&sites_x[center-s]);
+                    v128_t v_lsy = wasm_v128_load(&sites_y[center-s]);
+                    v128_t v_lsz = wasm_v128_load(&sites_z[center-s]);
 
-                    v128_t v_lx = wasm_v128_load(&sites_x[center-s]);
-                    v128_t v_ly = wasm_v128_load(&sites_y[center-s]);
-                    v128_t v_lz = wasm_v128_load(&sites_z[center-s]);
+                    v128_t v_rsx = wasm_v128_load(&sites_x[center+s]);
+                    v128_t v_rsy = wasm_v128_load(&sites_y[center+s]);
+                    v128_t v_rsz = wasm_v128_load(&sites_z[center+s]);
 
-                    v128_t v_rx = wasm_v128_load(&sites_x[center+s]);
-                    v128_t v_ry = wasm_v128_load(&sites_y[center+s]);
-                    v128_t v_rz = wasm_v128_load(&sites_z[center+s]);
+                    v128_t v_lx0 = wasm_v128_bitselect(v_li, v_lsx, v_linside);
+                    v128_t v_lx1 = wasm_v128_bitselect(v_lsx, v_li, v_linside);
+                    v128_t v_lx = wasm_v128_bitselect(v_lx1, v_lx0, v_inside);
 
-                    v_lx = wasm_v128_bitselect(wasm_f32x4_make(i-s, i-s+1, i-s+2, i-s+3), v_lx, v_linside);
-                    v_rx = wasm_v128_bitselect(wasm_f32x4_make(i+s, i+s+1, i+s+2, i+s+3), v_rx, v_rinside);
+                    v128_t v_ly0 = wasm_v128_bitselect(v_j, v_lsy, v_linside);
+                    v128_t v_ly1 = wasm_v128_bitselect(v_lsy, v_j, v_linside);
+                    v128_t v_ly = wasm_v128_bitselect(v_ly1, v_ly0, v_inside);
 
-                    v_ly = wasm_v128_bitselect(v_j, v_ly, v_linside);
-                    v_ry = wasm_v128_bitselect(v_j, v_ry, v_rinside);
+                    v128_t v_lz0 = wasm_v128_bitselect(v_zero, v_lsz, v_linside);
+                    v128_t v_lz1 = wasm_v128_bitselect(v_lsz, v_zero, v_linside);
+                    v128_t v_lz = wasm_v128_bitselect(v_lz1, v_lz0, v_inside);
 
-                    v_lz = wasm_v128_bitselect(wasm_f32x4_splat(0.0), v_lz, v_linside);
-                    v_rz = wasm_v128_bitselect(wasm_f32x4_splat(0.0), v_rz, v_rinside);
+                    v128_t v_rx0 = wasm_v128_bitselect(v_ri, v_rsx, v_rinside);
+                    v128_t v_rx1 = wasm_v128_bitselect(v_rsx, v_ri, v_rinside);
+                    v128_t v_rx = wasm_v128_bitselect(v_rx1, v_rx0, v_inside);
+
+                    v128_t v_ry0 = wasm_v128_bitselect(v_j, v_rsy, v_rinside);
+                    v128_t v_ry1 = wasm_v128_bitselect(v_rsy, v_j, v_rinside);
+                    v128_t v_ry = wasm_v128_bitselect(v_ry1, v_ry0, v_inside);
+
+                    v128_t v_rz0 = wasm_v128_bitselect(v_zero, v_rsz, v_rinside);
+                    v128_t v_rz1 = wasm_v128_bitselect(v_rsz, v_zero, v_rinside);
+                    v128_t v_rz = wasm_v128_bitselect(v_rz1, v_rz0, v_inside);
 
                     v128_t v_sx = wasm_f32x4_splat(voxelSize[0]);
                     v128_t v_sy = wasm_f32x4_splat(voxelSize[1]);
@@ -190,10 +203,6 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                     v_x = wasm_v128_bitselect(v_x, v_cx, wasm_f32x4_lt(v_d, v_cd));
                     v_y = wasm_v128_bitselect(v_y, v_cy, wasm_f32x4_lt(v_d, v_cd));
                     v_z = wasm_v128_bitselect(v_z, v_cz, wasm_f32x4_lt(v_d, v_cd));
-
-                    v_x = wasm_v128_bitselect(v_cx, v_x, v_inside);
-                    v_y = wasm_v128_bitselect(v_cy, v_y, v_inside);
-                    v_z = wasm_v128_bitselect(wasm_f32x4_splat(0.0), v_z, v_inside);
 
                     wasm_v128_store(&sites_x_tmp[center], v_x);
                     wasm_v128_store(&sites_y_tmp[center], v_y);
@@ -212,6 +221,9 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
 
                     v128_t v_i = wasm_f32x4_make(i, i+1, i+2, i+3);
                     v128_t v_j = wasm_f32x4_splat(j);
+                    v128_t v_lj = wasm_f32x4_splat(j-3*width*s);
+                    v128_t v_rj = wasm_f32x4_splat(j+3*width*s);
+                    v128_t v_zero = wasm_f32x4_splat(0.0);
 
                     v128_t v_inside = wasm_i32x4_gt(wasm_i32x4_make(inside[center], inside[center+1], inside[center+2], inside[center+3]), wasm_i32x4_splat(0));
                     v128_t v_linside = wasm_i32x4_gt(wasm_i32x4_make(inside[center-3*width*s], inside[center-3*width*s+1], inside[center-3*width*s+2], inside[center-3*width*s+3]), wasm_i32x4_splat(0));
@@ -220,29 +232,37 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                     v128_t v_cy = wasm_v128_load(&sites_y[center]);
                     v128_t v_cz = wasm_v128_load(&sites_z[center]);
 
-                    if (wasm_i32x4_all_true(v_inside)) {
-                        wasm_v128_store(&sites_x_tmp[center], v_cx);
-                        wasm_v128_store(&sites_y_tmp[center], v_cy);
-                        wasm_v128_store(&sites_z_tmp[center], wasm_f32x4_splat(0));
-                        continue;
-                    }
+                    v128_t v_lsx = wasm_v128_load(&sites_x[center-3*width*s]);
+                    v128_t v_lsy = wasm_v128_load(&sites_y[center-3*width*s]);
+                    v128_t v_lsz = wasm_v128_load(&sites_z[center-3*width*s]);
 
-                    v128_t v_lx = wasm_v128_load(&sites_x[center-3*width*s]);
-                    v128_t v_ly = wasm_v128_load(&sites_y[center-3*width*s]);
-                    v128_t v_lz = wasm_v128_load(&sites_z[center-3*width*s]);
+                    v128_t v_rsx = wasm_v128_load(&sites_x[center+3*width*s]);
+                    v128_t v_rsy = wasm_v128_load(&sites_y[center+3*width*s]);
+                    v128_t v_rsz = wasm_v128_load(&sites_z[center+3*width*s]);
 
-                    v128_t v_rx = wasm_v128_load(&sites_x[center+3*width*s]);
-                    v128_t v_ry = wasm_v128_load(&sites_y[center+3*width*s]);
-                    v128_t v_rz = wasm_v128_load(&sites_z[center+3*width*s]);
+                    v128_t v_lx0 = wasm_v128_bitselect(v_i, v_lsx, v_linside);
+                    v128_t v_lx1 = wasm_v128_bitselect(v_lsx, v_i, v_linside);
+                    v128_t v_lx = wasm_v128_bitselect(v_lx1, v_lx0, v_inside);
 
-                    v_lx = wasm_v128_bitselect(v_i, v_lx, v_linside);
-                    v_rx = wasm_v128_bitselect(v_i, v_rx, v_rinside);
+                    v128_t v_ly0 = wasm_v128_bitselect(v_lj, v_lsy, v_linside);
+                    v128_t v_ly1 = wasm_v128_bitselect(v_lsy, v_lj, v_linside);
+                    v128_t v_ly = wasm_v128_bitselect(v_ly1, v_ly0, v_inside);
 
-                    v_ly = wasm_v128_bitselect(wasm_f32x4_splat(j-s), v_ly, v_linside);
-                    v_ry = wasm_v128_bitselect(wasm_f32x4_splat(j+s), v_ry, v_rinside);
+                    v128_t v_lz0 = wasm_v128_bitselect(v_zero, v_lsz, v_linside);
+                    v128_t v_lz1 = wasm_v128_bitselect(v_lsz, v_zero, v_linside);
+                    v128_t v_lz = wasm_v128_bitselect(v_lz1, v_lz0, v_inside);
 
-                    v_lz = wasm_v128_bitselect(wasm_f32x4_splat(0.0), v_lz, v_linside);
-                    v_rz = wasm_v128_bitselect(wasm_f32x4_splat(0.0), v_rz, v_rinside);
+                    v128_t v_rx0 = wasm_v128_bitselect(v_i, v_rsx, v_rinside);
+                    v128_t v_rx1 = wasm_v128_bitselect(v_rsx, v_i, v_rinside);
+                    v128_t v_rx = wasm_v128_bitselect(v_rx1, v_rx0, v_inside);
+
+                    v128_t v_ry0 = wasm_v128_bitselect(v_rj, v_rsy, v_rinside);
+                    v128_t v_ry1 = wasm_v128_bitselect(v_rsy, v_rj, v_rinside);
+                    v128_t v_ry = wasm_v128_bitselect(v_ry1, v_ry0, v_inside);
+
+                    v128_t v_rz0 = wasm_v128_bitselect(v_zero, v_rsz, v_rinside);
+                    v128_t v_rz1 = wasm_v128_bitselect(v_rsz, v_zero, v_rinside);
+                    v128_t v_rz = wasm_v128_bitselect(v_rz1, v_rz0, v_inside);
 
                     v128_t v_sx = wasm_f32x4_splat(voxelSize[0]);
                     v128_t v_sy = wasm_f32x4_splat(voxelSize[1]);
@@ -284,10 +304,6 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                     v_x = wasm_v128_bitselect(v_x, v_cx, wasm_f32x4_lt(v_d, v_cd));
                     v_y = wasm_v128_bitselect(v_y, v_cy, wasm_f32x4_lt(v_d, v_cd));
                     v_z = wasm_v128_bitselect(v_z, v_cz, wasm_f32x4_lt(v_d, v_cd));
-
-                    v_x = wasm_v128_bitselect(v_cx, v_x, v_inside);
-                    v_y = wasm_v128_bitselect(v_cy, v_y, v_inside);
-                    v_z = wasm_v128_bitselect(wasm_f32x4_splat(0.0), v_z, v_inside);
 
                     wasm_v128_store(&sites_x_tmp[center], v_x);
                     wasm_v128_store(&sites_y_tmp[center], v_y);
@@ -307,7 +323,8 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                 float dy = voxelSize[1]*(sites_y[idx] - j);
                 float dz = voxelSize[2]*sites_z[idx];
                 float dist = sqrt(dx*dx+dy*dy+dz*dz);
-                sdf[width * j + i + (slice - start) * width * height] = (unsigned char)(min(dist * 10.0, 255.0));
+                if (!inside[pad+i+j*3*width]) dist *= -1;
+                sdf[width * j + i + (slice - start) * width * height] = (unsigned char)(min((dist + 5.0) * 10.0, 255.0));
             }
         }
 

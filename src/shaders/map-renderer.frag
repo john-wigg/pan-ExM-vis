@@ -26,7 +26,7 @@ void main()
     float maxPos = 0.0;
     for (float i = 0.0; i < volumeDims[2]; i += 1.0) {
         uv.z = i / float(volumeDims[2]);
-        float sdfVal = texture(sdf, uv).r * 255.0 / 10.0 - isovalue;
+        float sdfVal = texture(sdf, uv).r * 255.0 / 10.0 - 5.0 - isovalue;
         if (sdfVal <= 0.2) {
             float density = texture(volume, uv).r;
             if (density > maxDensity) {
