@@ -107,8 +107,8 @@ function createVoronoi(buffer, width, height, depth, progressBar) {
         var completion = 0;
         var buffers = new Array(numCompartments);
         for (var i = 0; i < numCompartments; i++) {
-            var jumpfloodWorker = new Worker('src/js/workers/jumpflood-worker.js');
-            jumpfloodWorker.onmessage = function(e) {
+            var danielssonWorker = new Worker('src/js/workers/danielsson-worker.js');
+            danielssonWorker.onmessage = function(e) {
                 if (e.data[0] == 'complete') {
                     var returnBuf = new Uint8Array(buffer.byteLength);
                     returnBuf.set(new Uint8Array(e.data[1]), 0);
@@ -122,7 +122,7 @@ function createVoronoi(buffer, width, height, depth, progressBar) {
                     progressBar.setProgress(sdfProgress * 100.0);
                 }
             }
-            jumpfloodWorker.postMessage([buffer, 0, depth, i+1]); // *Do NOT Transfer*
+            danielssonWorker.postMessage([buffer, 0, depth, i+1]); // *Do NOT Transfer*
         }
     })
 }

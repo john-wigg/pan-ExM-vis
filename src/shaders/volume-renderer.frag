@@ -67,7 +67,7 @@ void main()
 {
 	// Get clip space position
 	vec2 uv = 2.0 * gl_FragCoord.xy / resolution - 1.0;
-
+    
 	vec4 clipPos = vec4(uv.xy, 1.0, 1.0); // z=1.0 ist the near plane
 
 	vec3 rayOrig = (inverse(view*model) * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
