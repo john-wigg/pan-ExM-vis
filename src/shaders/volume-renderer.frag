@@ -47,7 +47,7 @@ vec4 matlab_spring(float x) {
 }
 
 float f(vec3 p) {
-    return texture(sdf, p).r * 255.0 / 10.0 - 5.0 - isovalue;
+    return texture(sdf, p).r * 255.0 / 10.0 - 5.0;
 }
 
 void calcNormalAndCurv(vec3 p, out vec3 normal, out float curv) // for function f(p)
@@ -67,7 +67,7 @@ void main()
 {
 	// Get clip space position
 	vec2 uv = 2.0 * gl_FragCoord.xy / resolution - 1.0;
-    
+
 	vec4 clipPos = vec4(uv.xy, 1.0, 1.0); // z=1.0 ist the near plane
 
 	vec3 rayOrig = (inverse(view*model) * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
@@ -113,7 +113,7 @@ void main()
         bool inProximity = false;
         while (dist < distInVolume) {
             if (!inProximity) {
-                float sdfVal = f(rayPos / volumeSize);
+                float sdfVal = f(rayPos / volumeSize) - isovalue;
                 
                 if (sdfVal < 0.01) {
                     inProximity = true;
@@ -122,7 +122,7 @@ void main()
                     rayPos += sdfVal * rayDir;
                 }
             } else {
-                float sdfVal = f(rayPos / volumeSize);
+                float sdfVal = f(rayPos / volumeSize) - isovalue;
                 if (sdfVal > 0.01) {
                     inProximity = false;
                     dist += sdfVal;
