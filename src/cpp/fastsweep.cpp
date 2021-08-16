@@ -5,14 +5,14 @@
 #include <emscripten.h>
 
 extern "C" {
-  unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target);
+  unsigned char * fastsweep(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target);
 }
 
 #define min(x, y) (x < y ? x : y)
 #define max(x, y) (x > y ? x : y)
 
-#define IDX2(i, j) ((i)+(j)*width)
-#define IDX3(i, j, k) ((i)+(j)*width+(k)*width*height)
+#define IDX2(i, j, w) ((i)+(j)*(w))
+#define IDX3(i, j, k, w, h) ((i)+(j)*(w)+(k)*(w)*(h))
 
 // 0 is +, 1 is -
 #define SWEEP1 0x00000000
@@ -46,15 +46,15 @@ void sweep(float *sdf, int width, int height, int depth, unsigned char dir) {
             int y = oy + sy*j;
             for (int i = 0; i < width; ++i) {
                 int x = ox + sx*i;
-                float d = sdf[IDX3(x, y, z)];
+                float d = sdf[IDX3(x, y, z, width, height)];
 
                 float d1, d2, d3;
                 if (x-sx > width-1 || x-sx < 0) d1 = 99999.9;
-                else d1 = sdf[IDX3(x-sx, y, z)];
+                else d1 = sdf[IDX3(x-sx, y, z, width, height)];
                 if (y-sy > height-1 || y-sy < 0) d2 = 99999.9;
-                else d2 = sdf[IDX3(x, y-sy, z)];
+                else d2 = sdf[IDX3(x, y-sy, z, width, height)];
                 if (z-sz > depth-1 || z-sz < 0) d3 = 99999.9;
-                else  d3 = sdf[IDX3(x, y, z-sz)];
+                else  d3 = sdf[IDX3(x, y, z-sz, width, height)];
 
                 // Sort in ascending order.
                 float a1 = min(d1, min(d2, d3));
@@ -73,7 +73,7 @@ void sweep(float *sdf, int width, int height, int depth, unsigned char dir) {
                 if (fabs(s1) < a2) dd = s1;
                 else if (fabs(s2) < a3) dd = s2;
 
-                sdf[IDX3(x, y, z)] = min(d, dd);
+                sdf[IDX3(x, y, z, width, height)] = min(d, dd);
             } 
         }
     }
@@ -83,32 +83,32 @@ void hullmarch(unsigned char *volume, float *sdf, int width, int height, int dep
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
-                bool b  = volume[IDX3(i  , j  , k  )]   == target;
-                bool b1 = volume[IDX3(i+1, j  , k  )] == target;
-                bool b2 = volume[IDX3(i  , j+1, k  )] == target;
-                bool b3 = volume[IDX3(i  , j  , k+1)] == target;
+                bool b  = volume[IDX3(i  , j  , k  , width, height)]  == target;
+                bool b1 = volume[IDX3(i+1, j  , k  , width, height)] == target;
+                bool b2 = volume[IDX3(i  , j+1, k  , width, height)] == target;
+                bool b3 = volume[IDX3(i  , j  , k+1, width, height)] == target;
 
                 if (b1 != b) {
                     if (b) {
-                        sdf[IDX3(i  , j  , k  )] = 0.0;
+                        sdf[IDX3(i  , j  , k  , width, height)] = 0.0;
                     } else {
-                        sdf[IDX3(i+1, j  , k  )] = 0.0;
+                        sdf[IDX3(i+1, j  , k  , width, height)] = 0.0;
                     }
                 }
 
                 if (b2 != b) {
                     if (b) {
-                        sdf[IDX3(i  , j  , k  )] = 0.0;
+                        sdf[IDX3(i  , j  , k  , width, height)] = 0.0;
                     } else {
-                        sdf[IDX3(i  , j+1, k  )] = 0.0;
+                        sdf[IDX3(i  , j+1, k  , width, height)] = 0.0;
                     }
                 }
 
                 if (b3 != b) {
                     if (b) {
-                        sdf[IDX3(i  , j  , k  )] = 0.0;
+                        sdf[IDX3(i  , j  , k  , width, height)] = 0.0;
                     } else {
-                        sdf[IDX3(i  , j  , k+1)] = 0.0;
+                        sdf[IDX3(i  , j  , k+1, width, height)] = 0.0;
                     }
                 }
             } 
@@ -116,7 +116,7 @@ void hullmarch(unsigned char *volume, float *sdf, int width, int height, int dep
     }
 }
 
-unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target) {
+unsigned char * fastsweep(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target) {
     std::vector<float> sdf(width*height*depth, 99999.9);
     
     hullmarch(volume, sdf.data(), width, height, depth, target);
@@ -134,9 +134,9 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
-                float dist = sdf[IDX3(i, j, k)] * 0.25; // TODO: proper scaling with voxel sizes
-                if (volume[IDX3(i, j, k)] == target) dist *= -1.0;
-                data[IDX3(i, j, k)] = (unsigned char)max(min((dist + 5.0) * 10.0, 255.0), 0.0);
+                float dist = sdf[IDX3(i, j, k, width, height)] * 0.25; // TODO: proper scaling with voxel sizes
+                if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
+                data[IDX3(i, j, k, width, height)] = (unsigned char)max(min((dist + 5.0) * 10.0, 255.0), 0.0);
             } 
         }
     }
