@@ -22,8 +22,11 @@ typedef struct L_t {
 } L_t;
 
 L_t min(L_t L1, L_t L2) {
-    float d1 = L1.x*L1.x+L1.y*L1.y+L1.z*L1.z;
-    float d2 = L2.x*L2.x+L2.y*L2.y+L2.z*L2.z;
+    float vx2 = voxelSize[0]*voxelSize[0];
+    float vy2 = voxelSize[1]*voxelSize[1];
+    float vz2 = voxelSize[1]*voxelSize[2];
+    float d1 = vx2*L1.x*L1.x+vy2*L1.y*L1.y+vz2*L1.z*L1.z;
+    float d2 = vx2*L2.x*L2.x+vy2*L2.y*L2.y+vz2*L2.z*L2.z;
     return (d1 < d2) ? L1 : L2;
 }
 
@@ -224,7 +227,10 @@ unsigned char * danielsson(unsigned char *volume, int width, int height, int dep
             for (int i = 0; i < width; ++i) {
                 L_t L0 = L[IDX3(i, j, k, width, height)];
 
-                float dist = sqrt(L0.x*L0.x+L0.y*L0.y+L0.z*L0.z) * 0.25; // TODO: proper scaling with voxel sizes
+                float vx2 = voxelSize[0]*voxelSize[0];
+                float vy2 = voxelSize[1]*voxelSize[1];
+                float vz2 = voxelSize[1]*voxelSize[2];
+                float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z); // TODO: proper scaling with voxel sizes
                 if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
                 data[IDX3(i, j, k, width, height)] = (unsigned char)fmax(fmin((dist + 5.0) * 10.0, 255.0), 0.0);
             } 
