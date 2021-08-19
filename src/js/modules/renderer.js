@@ -1,7 +1,7 @@
 import * as twgl from './3rdparty/twgl-full.module.js';
 import * as glm from './3rdparty/gl-matrix/index.js';
 import * as util from './util/common.js'
-import { dist } from './3rdparty/gl-matrix/vec3.js';
+import { dist, distance } from './3rdparty/gl-matrix/vec3.js';
 
 const canvas = document.querySelector('#canvas');
 const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: true});
@@ -173,8 +173,6 @@ function handleMouseMove(e) {
         
         var rotQuat = glm.quat.fromEuler(glm.quat.create(), 0.0, difX*mouseSpeed, -difY*mouseSpeed);
         glm.quat.multiply(modelRotation, rotQuat, modelRotation);
-
-        console.log(modelTranslation);
 
         glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
     

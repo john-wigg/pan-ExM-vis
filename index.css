@@ -11,6 +11,11 @@
     display: block;
 }
 
+#chart-canvas {
+    position: absolute;
+    margin: 0 0 0 0;
+}
+
 /* Overlay for the WebGL canvas with inside padding. */
 #view-container .canvas-overlay {
     position: absolute;
@@ -26,7 +31,6 @@
 
 .progress-list .progress {
     height: 20pt;
-    margin-top: 1rem;
 }
 
 .progress-list .alert {
@@ -72,6 +76,13 @@
     border: 0;
     border-left: 1px solid #0d6efd;
     border-right: 1px solid #0d6efd;
+    z-index: 1;
+}
+
+.h-divider {
+    border: 0;
+    border-top: 1px solid #0d6efd;
+    border-bottom: 1px solid #0d6efd;
     z-index: 1;
 }
 

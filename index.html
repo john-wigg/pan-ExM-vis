@@ -20,36 +20,52 @@
 </head>
 
 <body class="d-flex flex-column">
-	<!-- Modal for loading compartment data. -->
-	<div id="modal-load-compartment" class="modal" tabindex="-1" role="dialog">
+	<!-- Modal for importing data. -->
+	<div id="modalImportDialog" class="modal fade" tabindex="-1" role="dialog">
 		<div class="modal-dialog" role="document">
 		  <div class="modal-content">
 			<div class="modal-header">
-			  <h5 class="modal-title">Loading Compartment Data...</h5>
+			  <h5 class="modal-title">Import Data</h5>
+			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
-			<div class="modal-body">
-				<div class="progress-list container-fluid">
-					<div id="compartment-progress-load"></div>
-					<div id="compartment-progress-decode"></div>
-<!--					<div id="compartment-progress-octree"></div> -->
-					<div id="compartment-progress-voronoi"></div>
+			<div class="modal-body mb-3">
+				<div class="mb-3">
+					<label for="selectProteinFile" class="form-label">Protein Data</label>
+					<input type="file" class="form-control" id="selectProteinFile">
+				</div>
+				<div class="mb-3">
+					<label for="selectCompartmentFile" class="form-label">Compartment Data</label>
+					<input type="file" class="form-control" id="selectCompartmentFile">
+				</div>
+				<div class="mb-3">
+					<div class="input-group">
+						<span class="input-group-text">Volume Size</span>
+						<input type="number" id="inputVolumeSizeX" class="form-control">
+						<input type="number" id="inputVolumeSizeY" class="form-control">
+						<input type="number" id="inputVolumeSizeZ" class="form-control">
+					</div>
+				</div>
+				<div class="d-grid">
+					<button type="button" class="btn btn-primary" id="buttonImportData" disabled>Import Data</button>
+					<div id="alertImportData" class="alert alert-danger" role="alert"></div>
 				</div>
 			</div>
 		  </div>
 		</div>
 	</div>
 
-	<!-- Modal for loading volume data. -->
-	<div id="modal-load-volume" class="modal" tabindex="-1" role="dialog">
+	<div id="modalImportProgress" class="modal fade" data-bs-backdrop="static">
 		<div class="modal-dialog" role="document">
 		  <div class="modal-content">
 			<div class="modal-header">
-			  <h5 class="modal-title">Loading Protein Data...</h5>
+			  <h5 class="modal-title">Importing Data...</h5>
 			</div>
 			<div class="modal-body">
-				<div class="progress-list container-fluid">
-					<div id="volume-progress-load"></div>
+				<div class="d-grid gap-3 progress-list">
 					<div id="volume-progress-decode"></div>
+					<div id="compartment-progress-decode"></div>
+<!--					<div id="compartment-progress-octree"></div> -->
+					<div id="compartment-progress-voronoi"></div>
 				</div>
 			</div>
 		  </div>
@@ -82,7 +98,12 @@
 		<div id="main-view" class="flex-fill">
 		</div>
 		<div class="v-divider"></div>
-		<div id="map-view" class="flex-fill">
+		<div class="flex-fill d-flex flex-column">
+			<div id="map-view" class="flex-fill"></div>
+			<div class="h-divider"></div>
+			<div id="chart-view" class="flex-fill">
+				<canvas id="chart-canvas"></canvas>
+			</div>
 		</div>
 		<div class="canvas-overlay container-fluid d-grid gap-3">
 			<div class="btn-toolbar justify-content-between" role="toolbar" aria-label="Toolbar with button groups">
@@ -98,8 +119,7 @@
 						</a>
 
 						<ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-							<li><a class="dropdown-item" href="#" id="loadProteinData">Load protein data...</a></li>
-							<li><a class="dropdown-item" href="#" id="loadCompartmentData">Load compartment data...</a></li>
+							<li><a class="dropdown-item" href="#" id="buttonOpenImportDialog">Load data...</a></li>
 						</ul>
 					</div>
 					<a class="btn btn-primary" href="#" role="button" id="toolbarAbout">
@@ -149,6 +169,7 @@
 
 <script src="src/js/3rdparty/jquery-3.6.0.min.js"></script>
 <script src="src/js/3rdparty/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="src/compute/compute-jfa.js"></script>
 <script src="index.js" type="module"></script>
 

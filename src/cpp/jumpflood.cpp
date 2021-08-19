@@ -6,7 +6,7 @@
 #include <wasm_simd128.h>
 
 extern "C" {
-  unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int start, int stop, unsigned char target);
+  unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, unsigned char target);
 }
 
 #define min(x, y) (x < y ? x : y)
@@ -15,8 +15,9 @@ extern "C" {
 // Hardcoded (for now) z/x (or z/y) voxel aspect.
 const float voxelSize[3] = { 0.24, 0.24, 0.2999309 };
 
-unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, int start, int stop, unsigned char target) {
-    target = 0;
+unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, unsigned char target) {
+    int start = 0;
+    int stop = depth;
     int d = stop - start;
 
     std::vector<unsigned char> sdf(width * height * d, 0);
@@ -323,7 +324,7 @@ unsigned char * jfa3(unsigned char *volume, int width, int height, int depth, in
                 float dy = voxelSize[1]*(sites_y[idx] - j);
                 float dz = voxelSize[2]*sites_z[idx];
                 float dist = sqrt(dx*dx+dy*dy+dz*dz);
-                if (!inside[pad+i+j*3*width]) dist *= -1;
+                if (inside[pad+i+j*3*width]) dist *= -1;
                 sdf[width * j + i + (slice - start) * width * height] = (unsigned char)(min((dist + 5.0) * 10.0, 255.0));
             }
         }

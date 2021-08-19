@@ -12,11 +12,6 @@ function decodeTiff(buffer, bits) {
     let pi = ifd[0]['t262']; // should be 1
     let spp = ifd[0]['t277']; // should be 1
 
-    if (bps != bits || pi != 1 || spp != 1) {
-        postMessage(["error", "TIFF file has incorrect format!"]);
-        return;
-    }
-
     var PixelArray;
     if (bps == 8) {
         PixelArray = Uint8Array;

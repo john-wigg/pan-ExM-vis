@@ -5,7 +5,7 @@
 #include <emscripten.h>
 
 extern "C" {
-  unsigned char * fastsweep(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target);
+  unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, unsigned char target);
 }
 
 #define min(x, y) (x < y ? x : y)
@@ -116,7 +116,7 @@ void hullmarch(unsigned char *volume, float *sdf, int width, int height, int dep
     }
 }
 
-unsigned char * fastsweep(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target) {
+unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, unsigned char target) {
     std::vector<float> sdf(width*height*depth, 99999.9);
     
     hullmarch(volume, sdf.data(), width, height, depth, target);
@@ -126,7 +126,7 @@ unsigned char * fastsweep(unsigned char *volume, int width, int height, int dept
 
         EM_ASM({
             postMessage(['progress', $0]);
-        }, 0.9*float(i + 1)/8.0);
+        }, 1.0/8.0);
     }
 
     std::vector<unsigned char> data(width*height*depth);
@@ -140,8 +140,6 @@ unsigned char * fastsweep(unsigned char *volume, int width, int height, int dept
             } 
         }
     }
-    EM_ASM({
-        postMessage(['progress', $0]);
-    }, 1.0);
+
     return data.data();
 }

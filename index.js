@@ -2,60 +2,101 @@ import * as Renderer from "./src/js/modules/renderer.js"
 import LabeledProgressBar from "./src/js/modules/util/labelled-progress-bar.js"
 import { simd } from "./src/js/modules/3rdparty/wasm-feature-detect.js"
 
+$.getScript("./src/js/workers/include/3rdparty/UTIF.js")
+
 var tiffWorker = new Worker('src/js/workers/decode-worker.js');
 //var octreeWorker = new Worker('src/js/workers/octree-worker.js');
 
-var modalLoadVolume = new bootstrap.Modal(document.getElementById('modal-load-volume'), {});
-var modalLoadCompartment = new bootstrap.Modal(document.getElementById('modal-load-compartment'), {});
+var modalLoadData = new bootstrap.Modal($('#modalImportDialog')[0]);
+var modalImportProgress = new bootstrap.Modal($('#modalImportProgress')[0]);
 
-function loadProteinData() {
-    let progressDecode = new LabeledProgressBar(document.getElementById('volume-progress-decode'), "Decode TIFF...");
-    let progressLoad = new LabeledProgressBar(document.getElementById('volume-progress-load'), "Load TIFF...");
-    chooseFile().then((file) => { modalLoadVolume.show(); return openTiff(file, progressLoad); })
-                    .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) })
-                        .then((data) => { Renderer.setProteinData(data.buffer, [data.width, data.height, data.depth]); })
-                        .then(() => { modalLoadVolume.hide(); })
-                    .catch((err) => { progressDecode.setError(err) })
-                .catch((err) => {progressLoad.setError(err) })
-}
+var hists = null;
+var chart = null;
 
-function loadCompartmentData() {
-    let progressDecode = new LabeledProgressBar(document.getElementById('compartment-progress-decode'), "Decode TIFF...");
-    let progressLoad = new LabeledProgressBar(document.getElementById('compartment-progress-load'), "Load TIFF...");
-    //let progressOctree = new LabeledProgressBar(document.getElementById('compartment-progress-octree'), "Create Octree...");
-    let progressVoronoi = new LabeledProgressBar(document.getElementById('compartment-progress-voronoi'), "Generate Distance Field...");
-    chooseFile().then((file) => { modalLoadCompartment.show(); return openTiff(file, progressLoad); })
-                .then((buffer) => { return decodeTiff(buffer, 8, progressDecode) })
-                    .then((data) => { return createVoronoi(data.buffer, data.width, data.height, data.depth, progressVoronoi) })
-                        .then((data) => { Renderer.setDistanceFieldData(data.buffers, [data.width, data.height, data.depth]); })
-                        .then(() => { modalLoadCompartment.hide(); })
-                    .catch((err) => { progressVoronoi.setError(err) })
-                .catch((err) => { progressOpenTiff.setError(err) })
-                //.then((buffer) => { return createOctree(buffer, progressOctree) }, (err) => { progressDecode.setError(err) })
-}
+async function readTiff(blob) {
+    let buffer = await openTiff(blob);
 
-function chooseFile() {
-    return new Promise(function (resolve, reject) {
-        var input = document.createElement('input');
-        input.type = 'file';
-    
-        input.onchange = e => {
-            resolve(e.target.files[0]);
+    let ifd = UTIF.decode(buffer);
+    let properties = (({ t256, t257, t258, t277 }) => ({ t256, t257, t258, t277 }))(ifd[0]);
+
+    if (properties.t277 != 1) {
+        throw "Only grayscale images are supported.";
+    }
+
+    if (properties.t258 != 8) {
+        throw "Only images with bit depth 8 are supported.";
+    }
+
+    for (var i = 0; i < ifd.length; ++i) {
+        let sliceProperties = (({ t256, t257, t258, t277 }) => ({ t256, t257, t258, t277 }))(ifd[i]);
+
+        if (JSON.stringify(properties) !== JSON.stringify(sliceProperties)) {
+            throw "Slice " + i + " has incorrect dimensions or pixel depth.";
         }
+    }
     
-        input.click();
-    })
+    return { "buffer" : buffer, "width" : properties.t256[0], "height" : properties.t257[0], "depth" : ifd.length, "bits" : properties.t258[0] };
 }
 
-function openTiff(file, progressBar) {
+async function importData() {
+    var proteinFile = null;
+    var compartmentFile = null;
+    const data = {
+        protein: null,
+        sdf: null
+    }
+    let progressDecodeProtein = new LabeledProgressBar(document.getElementById('volume-progress-decode'), "Decode Protein TIFF...");
+    let progressDecodeCompartments = new LabeledProgressBar(document.getElementById('compartment-progress-decode'), "Decode Compartment TIFF...");//let progressOctree = new LabeledProgressBar(document.getElementById('compartment-progress-octree'), "Create Octree...");
+    let progressVoronoi = new LabeledProgressBar(document.getElementById('compartment-progress-voronoi'), "Generate Distance Field...");
+
+    try {
+        proteinFile = await readTiff($('#selectProteinFile')[0].files[0]);
+        compartmentFile = await readTiff($('#selectCompartmentFile')[0].files[0]);
+
+        if (proteinFile.width != compartmentFile.width || proteinFile.height != compartmentFile.height || proteinFile.depth != compartmentFile.depth) {
+            throw "File dimension mismatch! Please make sure the protein and the compartment files have the same dimensions.";
+        }
+    } catch (err) {
+        $('#alertImportData').html(err);
+        return;
+    }
+
+    modalLoadData.hide();
+    modalImportProgress.show();
+
+    try {
+        data.protein = await decodeTiff(proteinFile.buffer, proteinFile.bits, progressDecodeProtein);
+    } catch (err) {
+        progressDecodeCompartments.setError(err);
+        return;
+    }
+
+    try {
+        const decoded = await decodeTiff(compartmentFile.buffer, compartmentFile.bits, progressDecodeCompartments)
+        try {
+            data.sdf = await createVoronoi(decoded.buffer, decoded.width, decoded.height, decoded.depth, progressVoronoi)
+        } catch (err) {
+            progressVoronoi.setError(err);
+            return;
+        }
+    } catch (err) {
+        progressDecodeCompartments.setError(err);
+        return;
+    }
+
+    hists = await computeHistograms(data);
+    chart = createHistogram(hists[0]);
+
+    Renderer.setDistanceFieldData(data.sdf.buffers, [data.sdf.width, data.sdf.height, data.sdf.depth]);
+    Renderer.setProteinData(data.protein.buffer, [data.protein.width, data.protein.height, data.protein.depth]);
+    
+    modalImportProgress.hide();
+}
+
+function openTiff(file) {
     return new Promise(function(resolve, reject) {
         var reader = new FileReader();
         reader.readAsArrayBuffer(file)
-    
-        reader.onprogress = readerEvent => {
-            let progress = readerEvent.loaded / readerEvent.total * 100
-            progressBar.setProgress(progress);
-        }
     
         reader.onload = readerEvent => {
             resolve(readerEvent.target.result);
@@ -91,9 +132,8 @@ function decodeTiff(buffer, bits, progressBar) {
 
 var sdfProgress = 0.0;
 function createVoronoi(buffer, width, height, depth, progressBar) {
-    var voxels = new Uint8Array(buffer);
     const reducer = (accumulator, currentValue) => Math.max(accumulator, currentValue);
-    var numCompartments = voxels.reduce(reducer);
+    var numCompartments = buffer.reduce(reducer);
     for (var i = 1; i <= numCompartments; i++) {
         var ele = document.createElement("a");
         ele.classList = "dropdown-item";
@@ -110,11 +150,11 @@ function createVoronoi(buffer, width, height, depth, progressBar) {
             var danielssonWorker = new Worker('src/js/workers/danielsson-worker.js');
             danielssonWorker.onmessage = function(e) {
                 if (e.data[0] == 'complete') {
-                    var returnBuf = new Uint8Array(buffer.byteLength);
-                    returnBuf.set(new Uint8Array(e.data[1]), 0);
-                    buffers[e.data[2]-1] = returnBuf; // TODO: Why is this needed??
+                    buffers[e.data[2]-1] = (new Uint8Array(e.data[1])).slice(0);
                     completion += 1;
                     if (completion == numCompartments) {
+                        progressBar.setProgress(100.0);
+                        console.log(buffers);
                         resolve({"buffers": buffers, "width": width, "height": height, "depth": depth});
                     }
                 } else if (e.data[0] == 'progress') {
@@ -122,9 +162,40 @@ function createVoronoi(buffer, width, height, depth, progressBar) {
                     progressBar.setProgress(sdfProgress * 100.0);
                 }
             }
-            danielssonWorker.postMessage([buffer, 0, depth, i+1]); // *Do NOT Transfer*
+
+            danielssonWorker.postMessage([buffer, i+1]);
         }
     })
+}
+
+function computeHistograms(data) {
+    return new Promise( function (resolve, reject) {
+        var histogramWorker = new Worker('src/js/workers/histogram-worker.js');
+        histogramWorker.onmessage = function(e) {
+            if (e.data[0] == "progress") {
+                
+            } else if (e.data[0] == "complete") {
+                data.protein.buffer = new Uint8Array(e.data[2]);
+                for (var i = 0; i < data.sdf.buffers.length; ++i) {
+                    data.sdf.buffers[i] = new Uint8Array(e.data[3+i]);
+                }
+                resolve(e.data[1]);
+            } else if (e.data[0] == "error") {
+                reject(e.data[1]);
+            }
+        }
+        
+        var transfer_data = new Array();
+        var msg_data = new Array();
+        msg_data.push(data.protein.buffer.buffer);
+        msg_data.push(data.sdf.buffers.length);
+        transfer_data.push(data.protein.buffer.buffer);
+        for (var i = 0; i < data.sdf.buffers.length; ++i) {
+            transfer_data.push(data.sdf.buffers[i].buffer);
+            msg_data.push(data.sdf.buffers[i].buffer);
+        }
+        histogramWorker.postMessage(msg_data, transfer_data);
+    });
 }
 
 /*
@@ -147,6 +218,7 @@ $(document).ready(function () {
     $('#dropdownCompartmentsMenu').on('click', 'a', function(){
         $("#dropdownCompartments").html($(this).html());
         var idx = $(this).data('id')-1;
+        $( document ).trigger( "eventCompartmentSelected", [idx]);
         Renderer.setCompartmentIndex(idx)
     });
 
@@ -166,8 +238,29 @@ $(document).ready(function () {
         Renderer.deleteSelection();
     });
 
-    $('#loadCompartmentData').click(loadCompartmentData);
-    $('#loadProteinData').click(loadProteinData);
+    $('#buttonImportData').click(importData);
+    $('#buttonOpenImportDialog').click(() => { modalLoadData.show();});
+
+    $('#buttonImportData').attr('disabled',true);
+    const toggleImportButton = function(){
+        if ($('#selectCompartmentFile').val() && $('#selectProteinFile').val()
+            && $('#inputVolumeSizeX').val() && $('#inputVolumeSizeY').val() && $('#inputVolumeSizeZ').val()){
+            $('#buttonImportData').removeAttr('disabled'); 
+        }
+        else {
+            $('#buttonImportData').attr('disabled',true);
+        }
+    };
+
+    $('#selectCompartmentFile').change(toggleImportButton);
+    $('#selectProteinFile').change(toggleImportButton);
+    $('#inputVolumeSizeX').on("input", toggleImportButton);
+    $('#inputVolumeSizeY').on("input", toggleImportButton);
+    $('#inputVolumeSizeZ').on("input", toggleImportButton);
+
+    $( document ).on("eventCompartmentSelected", function(event, idx) {
+        updateHistogram(chart, hists[idx]);
+    })
 });
 
 simd().then(simdSupported => {
@@ -183,4 +276,49 @@ window.onload = () => {
       navigator.serviceWorker
                .register('./sw.js');
     }
+}
+
+function createHistogram(hist) {
+    var ctx = document.getElementById('chart-canvas');
+    ctx.width = $("#chart-view").width();
+    ctx.height = $("#chart-view").height();
+
+    var labels = new Array();
+    for (var i = 0; i < 256; ++i) {
+        labels.push(i / 10.0 - 5.0);
+    }
+
+    const data = {
+        labels: labels,
+        datasets: [{
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: hist, // Leave out 1st and last element.
+        }]
+    };
+
+    const config = {
+        type: 'bar',
+        data,
+        options: {responsive: false}
+    };
+
+    var myChart = new Chart(
+        document.getElementById('chart-canvas'),
+        config
+    );
+
+    return myChart;
+}
+
+function updateHistogram(chart, hist) {
+    var labels = new Array();
+    for (var i = 0; i < 256; ++i) {
+        labels.push(i / 10.0 - 5.0);
+    }
+
+    chart.data.datasets[0].labels = labels;
+    chart.data.datasets[0].data = hist;
+    
+    chart.update();
 }

@@ -5,7 +5,7 @@
 #include <emscripten.h>
 
 extern "C" {
-  unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target);
+  unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, unsigned char target);
 }
 
 
@@ -89,7 +89,7 @@ void sweep(L_t *L, int width, int height, int depth) {
 
         EM_ASM({
             postMessage(['progress', $0]);
-        }, 0.5*float(k + 1)/depth);
+        }, 0.5/depth);
     }
     
     for (int k = depth-2; k >= 0; --k) {
@@ -150,7 +150,7 @@ void sweep(L_t *L, int width, int height, int depth) {
 
         EM_ASM({
             postMessage(['progress', $0]);
-        }, 0.5+0.5*float(depth-2-k + 1)/depth);
+        }, 0.5/depth);
     }
 }
 
@@ -213,14 +213,14 @@ void hullmarch(unsigned char *volume, L_t *L, int width, int height, int depth, 
     }
 }
 
-unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, int _start, int _stop, unsigned char target) {
+unsigned char * danielsson(unsigned char *volume, int width, int height, int depth, unsigned char target) {
     std::vector<L_t> L(width*height*depth);
     
     hullmarch(volume, L.data(), width, height, depth, target);
 
     sweep(L.data(), width, height, depth);
 
-    std::vector<unsigned char> data(width*height*depth);
+    std::vector<unsigned char> sdf(width*height*depth);
 
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
@@ -230,12 +230,13 @@ unsigned char * danielsson(unsigned char *volume, int width, int height, int dep
                 float vx2 = voxelSize[0]*voxelSize[0];
                 float vy2 = voxelSize[1]*voxelSize[1];
                 float vz2 = voxelSize[1]*voxelSize[2];
-                float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z); // TODO: proper scaling with voxel sizes
+                float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z);
                 if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
-                data[IDX3(i, j, k, width, height)] = (unsigned char)fmax(fmin((dist + 5.0) * 10.0, 255.0), 0.0);
+                sdf[IDX3(i, j, k, width, height)] = (unsigned char)fmax(fmin((dist + 5.0) * 10.0, 255.0), 0.0);
             } 
         }
     }
 
-    return data.data();
+    unsigned char *data = sdf.data();
+    return data;
 }
