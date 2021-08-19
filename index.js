@@ -12,6 +12,7 @@ var modalImportProgress = new bootstrap.Modal($('#modalImportProgress')[0]);
 
 var hists = null;
 var chart = null;
+var compIdx = 0;
 
 async function readTiff(blob) {
     let buffer = await openTiff(blob);
@@ -232,6 +233,7 @@ $(document).ready(function () {
 
     $('#rangeIsovalue').on('input change', function() {
         Renderer.setIsovalue(this.value);
+        $(document).trigger("eventIsovalueChanged", [this.value]);
     });
 
     $('#deleteSelection').click(function() {
@@ -259,8 +261,12 @@ $(document).ready(function () {
     $('#inputVolumeSizeZ').on("input", toggleImportButton);
 
     $( document ).on("eventCompartmentSelected", function(event, idx) {
-        updateHistogram(chart, hists[idx]);
-    })
+        updateHistogram(chart, idx, $('#rangeIsovalue').val());
+    });
+
+    $(document).on("eventIsovalueChanged", function(event, isovalue) {
+        updateHistogram(chart, compIdx, isovalue);
+    });
 });
 
 simd().then(simdSupported => {
@@ -311,14 +317,18 @@ function createHistogram(hist) {
     return myChart;
 }
 
-function updateHistogram(chart, hist) {
+function updateHistogram(chart, idx, cutoff) {
+    const hist = hists[idx];
     var labels = new Array();
-    for (var i = 0; i < 256; ++i) {
-        labels.push(i / 10.0 - 5.0);
+    var i;
+    for (i = 0; i < 256; ++i) {
+        var isovalue = i / 10.0 - 5.0;
+        if (isovalue > cutoff) break;
+        labels.push(isovalue);
     }
 
     chart.data.datasets[0].labels = labels;
-    chart.data.datasets[0].data = hist;
+    chart.data.datasets[0].data = hist.subarray(0, i);
     
     chart.update();
 }

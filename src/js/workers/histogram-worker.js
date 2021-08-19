@@ -9,12 +9,9 @@ onmessage = function(e) {
             return;
         }
         var bitDepth = 8;
-        var hist = new Array(2**bitDepth);
-        var A = new Array(2**bitDepth);
-        for (var j = 0; j < 2**bitDepth; ++j) {
-            hist[j] = 0.0;
-            A[j] = 0.0;
-        }
+        var hist = new Float32Array(2**bitDepth);
+        var A = new Float32Array(2**bitDepth);
+
         for (var j = 0; j < sdfBuffer.length; ++j) {
             hist[sdfBuffer[j]] += proteinBuffer[j];
             A[sdfBuffer[j]] += 1.0;
@@ -28,7 +25,7 @@ onmessage = function(e) {
     var transfer_data = new Array();
     var msg_data = new Array();
     msg_data.push('complete');
-    msg_data.push(hist);
+    msg_data.push(hists);
     msg_data.push(proteinBuffer.buffer);
     transfer_data.push(proteinBuffer.buffer);
     for (var i = 0; i < numCompartments; ++i) {

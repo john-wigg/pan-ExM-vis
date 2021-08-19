@@ -19,6 +19,8 @@ var mapProgramInfo = null;
 var blitProgramInfo = null;
 var drawProgramInfo = null;
 
+var isovalueDirty = false;
+
 const mapUniforms = {
     volume: 0,
     sdf: 1,
@@ -246,6 +248,11 @@ function draw() {
     twgl.setUniforms(programInfo, uniforms);
     twgl.drawBufferInfo(gl, bufferInfo);
     window.requestAnimationFrame(function() {draw(); });
+
+    if (isovalueDirty) {
+        window.requestAnimationFrame(function() {drawMap(); });
+        isovalueDirty = false;
+    }
 }
 
 function drawSelection() {
@@ -378,7 +385,7 @@ function setIsovalue(value) {
     uniforms.isovalue = value;
     mapUniforms.isovalue = uniforms.isovalue;
 
-    window.requestAnimationFrame(function() {drawMap(); });
+    isovalueDirty = true;
 }
 
 function deleteSelection() {
