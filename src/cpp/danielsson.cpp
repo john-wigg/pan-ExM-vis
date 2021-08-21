@@ -15,10 +15,12 @@ extern "C" {
 // Hardcoded (for now) z/x (or z/y) voxel aspect.
 const float voxelSize[3] = { 0.24, 0.24, 0.2999309 };
 
+// Use a bitmask to reduce the memory footprint and
+// increase cache hits. Allows for max. 4096x4096x256 stacks.
 typedef struct L_t { 
-    uint16_t x;
-    uint16_t y;
-    uint16_t z;
+    unsigned x:12;
+    unsigned y:12;
+    unsigned z:8;
 } L_t;
 
 L_t min(L_t L1, L_t L2) {
@@ -158,9 +160,9 @@ void hullmarch(unsigned char *volume, L_t *L, int width, int height, int depth, 
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
-                L[IDX3(i  , j  , k  , width, height)].x = 9999;
-                L[IDX3(i  , j  , k  , width, height)].y = 9999;
-                L[IDX3(i  , j  , k  , width, height)].z = 9999;
+                L[IDX3(i  , j  , k  , width, height)].x = 4095;
+                L[IDX3(i  , j  , k  , width, height)].y = 4095;
+                L[IDX3(i  , j  , k  , width, height)].z =  255;
             }
         }
     }
