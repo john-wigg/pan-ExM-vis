@@ -27,6 +27,20 @@ extern "C" {
 // Hardcoded (for now) z/x (or z/y) voxel aspect.
 const float voxelSize[3] = { 0.24, 0.24, 0.2999309 };
 
+void swap(int* a, int* b)
+{
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void swap(float* a, float* b)
+{
+    float temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
 void sweep(float *sdf, int width, int height, int depth, unsigned char dir) {
     const int dx = (dir >> 0) & 1;
     const int dy = (dir >> 1) & 1;
@@ -57,17 +71,56 @@ void sweep(float *sdf, int width, int height, int depth, unsigned char dir) {
                 else  d3 = sdf[IDX3(x, y, z-sz, width, height)];
 
                 // Sort in ascending order.
-                float a1 = min(d1, min(d2, d3));
-                float a2 = max(min(d1, d2), min(d2, d3));
-                float a3 = max(d1, max(d2, d3));
+                float a1 = d1;
+                float a2 = d2;
+                float a3 = d3;
+
+                float h1 = voxelSize[0];
+                float h2 = voxelSize[1];
+                float h3 = voxelSize[2];
+
+                if (a1 > a2) {
+                    swap(&a1, &a2);
+                    swap(&h1, &h2);
+                }
+
+                if (a2 > a3) {
+                    swap(&a2, &a3);
+                    swap(&h2, &h3);
+                }
+
+                if (a1 > a2) {
+                    swap(&a1, &a2);
+                    swap(&h1, &h2);
+                }
 
                 float a12 = a1-a2;
                 float a13 = a1-a3;
                 float a23 = a2-a3;
 
-                float s1 = a1 + 1;
-                float s2 = (a1+a2+sqrt(2.0-a12*a12))/2.0;
-                float s3 = (a1+a2+a3+sqrt(3.0-a12*a12-a13*a13-a23*a23))/3.0;
+                float aa12 = a12*a12;
+                float aa13 = a13*a13;
+                float aa23 = a23*a23;
+
+                // TODO: Needs to be sorted accoring to a1, a2, a3
+
+                float hh1 = h1*h1;
+                float hh2 = h2*h2;
+                float hh3 = h3*h3;
+
+                float _hh1 = 1.0/hh1;
+                float _hh2 = 1.0/hh2;
+                float _hh3 = 1.0/hh3;
+
+                float a1_hh1 = a1*_hh1;
+                float a2_hh2 = a2*_hh2;
+                float a3_hh3 = a3*_hh3;
+
+                float s1 = a1 + h1;
+                float s2 = 1.0/(_hh1+_hh2)*(sqrt((hh1+hh2) - aa12)/h1/h2 + a1_hh1+a2_hh2);
+                float s3 = 1.0/(_hh1+_hh2+_hh3)
+                           *(sqrt((hh1*hh2 + hh1*hh3 + hh2*hh3) - hh3*aa12 - hh2*aa13 - hh1*aa23)/h1/h2/h3
+                             + a1_hh1 + a2_hh2 + a3_hh3);
 
                 float dd = s3;
                 if (fabs(s1) < a2) dd = s1;
@@ -134,7 +187,7 @@ unsigned char * danielsson(unsigned char *volume, int width, int height, int dep
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
-                float dist = sdf[IDX3(i, j, k, width, height)] * 0.25; // TODO: proper scaling with voxel sizes
+                float dist = sdf[IDX3(i, j, k, width, height)];
                 if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
                 data[IDX3(i, j, k, width, height)] = (unsigned char)max(min((dist + 5.0) * 10.0, 255.0), 0.0);
             } 
