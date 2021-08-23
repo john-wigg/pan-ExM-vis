@@ -42,13 +42,17 @@ async function readTiff(blob) {
 async function importData() {
     var proteinFile = null;
     var compartmentFile = null;
+    
     const data = {
         protein: null,
         sdf: null
     }
+    
     let progressDecodeProtein = new LabeledProgressBar(document.getElementById('volume-progress-decode'), "Decode Protein TIFF...");
     let progressDecodeCompartments = new LabeledProgressBar(document.getElementById('compartment-progress-decode'), "Decode Compartment TIFF...");//let progressOctree = new LabeledProgressBar(document.getElementById('compartment-progress-octree'), "Create Octree...");
     let progressVoronoi = new LabeledProgressBar(document.getElementById('compartment-progress-voronoi'), "Generate Distance Field...");
+    
+    var voxelSize = [$('#inputVolumeSizeX').val(), $('#inputVolumeSizeY').val(), $('#inputVolumeSizeZ').val()];
 
     try {
         proteinFile = await readTiff($('#selectProteinFile')[0].files[0]);
@@ -75,7 +79,7 @@ async function importData() {
     try {
         const decoded = await decodeTiff(compartmentFile.buffer, compartmentFile.bits, progressDecodeCompartments)
         try {
-            data.sdf = await createVoronoi(decoded.buffer, decoded.width, decoded.height, decoded.depth, progressVoronoi)
+            data.sdf = await createVoronoi(decoded.buffer, decoded.width, decoded.height, decoded.depth, voxelSize, progressVoronoi)
         } catch (err) {
             progressVoronoi.setError(err);
             return;
@@ -90,6 +94,7 @@ async function importData() {
 
     Renderer.setDistanceFieldData(data.sdf.buffers, [data.sdf.width, data.sdf.height, data.sdf.depth]);
     Renderer.setProteinData(data.protein.buffer, [data.protein.width, data.protein.height, data.protein.depth]);
+    Renderer.setVoxelSize(voxelSize);
     
     modalImportProgress.hide();
 }
@@ -132,7 +137,7 @@ function decodeTiff(buffer, bits, progressBar) {
 }
 
 var sdfProgress = 0.0;
-function createVoronoi(buffer, width, height, depth, progressBar) {
+function createVoronoi(buffer, width, height, depth, voxelSize, progressBar) {
     const reducer = (accumulator, currentValue) => Math.max(accumulator, currentValue);
     var numCompartments = buffer.reduce(reducer);
     for (var i = 1; i <= numCompartments; i++) {
@@ -155,7 +160,6 @@ function createVoronoi(buffer, width, height, depth, progressBar) {
                     completion += 1;
                     if (completion == numCompartments) {
                         progressBar.setProgress(100.0);
-                        console.log(buffers);
                         resolve({"buffers": buffers, "width": width, "height": height, "depth": depth});
                     }
                 } else if (e.data[0] == 'progress') {
@@ -164,7 +168,7 @@ function createVoronoi(buffer, width, height, depth, progressBar) {
                 }
             }
 
-            danielssonWorker.postMessage([buffer, i+1]);
+            danielssonWorker.postMessage([buffer, i+1, width, height, depth, voxelSize]);
         }
     })
 }
@@ -306,7 +310,37 @@ function createHistogram(hist) {
     const config = {
         type: 'bar',
         data,
-        options: {responsive: false}
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    type: "linear",
+                    grace: '0%',
+                    grid: {
+                        offset: false
+                    },
+                    title: {
+                        display: true,
+                        text: "Signed Distance"
+                    },
+                    ticks: {
+                        suggestedMin: 0,
+                        suggestedMax: 0
+                    }
+                },
+                y: {
+                    type: "linear",
+                    title: {
+                        display: true,
+                        text: "Protein Density (counts/voxel)"
+                    }
+                }
+            }
+        }
     };
 
     var myChart = new Chart(
@@ -327,8 +361,20 @@ function updateHistogram(chart, idx, cutoff) {
         labels.push(isovalue);
     }
 
+    const scales = {
+        xAxes: [{
+            display: true,
+            ticks: {
+                min: labels[0],
+                max: labels[labels.length - 1]
+            }
+        }]
+    }
+
     chart.data.datasets[0].labels = labels;
     chart.data.datasets[0].data = hist.subarray(0, i);
-    
+
+    chart.config.options.scales.x.ticks.min = labels[0];
+    chart.config.options.scales.x.ticks.max = parseFloat(cutoff)
     chart.update();
 }

@@ -19,7 +19,9 @@ var mapProgramInfo = null;
 var blitProgramInfo = null;
 var drawProgramInfo = null;
 
-var isovalueDirty = false;
+var mapDirty = false;
+var volumeDirty = false;
+var selectionDirty = false;
 
 const mapUniforms = {
     volume: 0,
@@ -91,6 +93,12 @@ var mouseX = 0.0;
 var mouseY = 0.0;
 var mouseDown = false;
 
+const NavigationMode = {
+    ROTATE: 0,
+    TRANSLATE: 1
+}
+var navigationMode = ""
+
 var modelRotation = glm.quat.create();
 var modelScale = glm.vec3.create();
 var modelTranslation = glm.vec3.create();
@@ -148,16 +156,22 @@ async function main() {
     setup(0, 0, 0);
 
     drawUniforms.firstFrame = true;
-    window.requestAnimationFrame(function() {drawSelection(); drawUniforms.firstFrame = false;});
-    
 
-    window.requestAnimationFrame(function() {draw(); });
+    mapDirty = true;
+    volumeDirty = true;
+    window.requestAnimationFrame(function() {drawSelection(); drawUniforms.firstFrame = false; draw();});
 }
 
 function handleMouseDown(e) {
     mouseX = e.clientX;
     mouseY = e.clientY;
     mouseDown = true;
+    volumeDirty = true;
+    if (e.which == 1) {
+        navigationMode = NavigationMode.ROTATE;
+    } else if (e.which == 3) {
+        navigationMode = NavigationMode.TRANSLATE;
+    }
 }
 
 function handleMouseUp(e) {
@@ -173,21 +187,29 @@ function handleMouseMove(e) {
         var difX = e.clientX - mouseX;
         var difY = e.clientY - mouseY;
         
-        var rotQuat = glm.quat.fromEuler(glm.quat.create(), 0.0, difX*mouseSpeed, -difY*mouseSpeed);
-        glm.quat.multiply(modelRotation, rotQuat, modelRotation);
+        if (navigationMode == NavigationMode.ROTATE) {
+            var rotQuat = glm.quat.fromEuler(glm.quat.create(), 0.0, difX*mouseSpeed, -difY*mouseSpeed);
+            glm.quat.multiply(modelRotation, rotQuat, modelRotation);
+        } else if (navigationMode == NavigationMode.TRANSLATE) {
+            var dir = glm.vec3.transformQuat(glm.vec3.create(), glm.vec3.divide(glm.vec3.create(), glm.vec3.fromValues(0.0, -difY, -difX), modelScale) , glm.quat.invert(glm.quat.create(), modelRotation));
+            modelTranslation = glm.vec3.add(modelTranslation, modelTranslation, dir);
+            console.log(modelTranslation);
+        }
 
-        glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
-    
+        glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, modelTranslation, modelScale, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)));
 
         mouseX = e.clientX;
         mouseY = e.clientY;
+
+        volumeDirty = true;
     }
 }
 
 function handleScroll(e) {
     let scale = 1.0 + e.deltaY / 400.0;
     glm.vec3.scale(modelScale, modelScale, scale);
-    glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
+    glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, modelTranslation, modelScale, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)));
+    volumeDirty = true;
 }
 
 function mapHandleMouseDown(e) {
@@ -197,12 +219,15 @@ function mapHandleMouseDown(e) {
     drawUniforms.position = [x, y];
     drawUniforms.lastPosition = drawUniforms.position;
     drawUniforms.depressed = true;
-    window.requestAnimationFrame(function() {drawSelection(); });
+
+    selectionDirty = true;
+    volumeDirty = true;
 }
 
 function mapHandleMouseUp(e) {
     drawUniforms.depressed = false;
-    window.requestAnimationFrame(function() {drawSelection(); });
+    selectionDirty = true;
+    volumeDirty = true;
 }
 
 
@@ -217,7 +242,7 @@ function mapHandleMouseMove(e) {
         const y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top); //y position within the element.
         drawUniforms.lastPosition = drawUniforms.position;
         drawUniforms.position = [x, y];
-        window.requestAnimationFrame(function() {drawSelection(); });
+        selectionDirty = true;
     }
 }
 
@@ -233,26 +258,36 @@ function draw() {
     uniforms.resolution = [width, height];
     
     uniforms.proj = glm.mat4.perspective(glm.mat4.create(), 60.0 * Math.PI / 180.0, width/height, 0.01, 10.0);
+
+    if (volumeDirty) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(left, bottom, width, height);
+        gl.scissor(left, bottom, width, height);
     
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.viewport(left, bottom, width, height);
-    gl.scissor(left, bottom, width, height);
+        // Set clear color to black, fully opaque
+        //gl.clearColor(0.0, 1.0, 0.0, 1.0);
+        // Clear the color buffer with specified clear color
+        //gl.clear(gl.COLOR_BUFFER_BIT);
+    
+        gl.useProgram(programInfo.program);
+        twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
+        twgl.setUniforms(programInfo, uniforms);
+        twgl.drawBufferInfo(gl, bufferInfo);
 
-    // Set clear color to black, fully opaque
-    //gl.clearColor(0.0, 1.0, 0.0, 1.0);
-    // Clear the color buffer with specified clear color
-    //gl.clear(gl.COLOR_BUFFER_BIT);
-
-    gl.useProgram(programInfo.program);
-    twgl.setBuffersAndAttributes(gl, programInfo, bufferInfo);
-    twgl.setUniforms(programInfo, uniforms);
-    twgl.drawBufferInfo(gl, bufferInfo);
-    window.requestAnimationFrame(function() {draw(); });
-
-    if (isovalueDirty) {
-        window.requestAnimationFrame(function() {drawMap(); });
-        isovalueDirty = false;
+        volumeDirty = false;
     }
+
+    if (selectionDirty) {
+        drawSelection();
+        selectionDirty = false;
+    }
+
+    if (mapDirty) {
+        drawMap();
+        mapDirty = false;
+    }
+
+    window.requestAnimationFrame(function() {draw(); });
 }
 
 function drawSelection() {
@@ -319,8 +354,6 @@ function setup(width, height, depth) {
     uniforms.volumeSize = glm.vec3.multiply(glm.vec3.create(), voxelSize, glm.vec3.fromValues(width, height, depth));
     mapUniforms.volumeDims = [width, height, depth]
 
-    
-    glm.vec3.multiply(modelTranslation, uniforms.volumeSize, glm.vec3.fromValues(0.5, 0.5, 0.5));
     modelScale = glm.vec3.fromValues(1.0, 1.0, 1.0);
     
     glm.mat4.fromRotationTranslationScaleOrigin(uniforms.model, modelRotation, glm.vec3.multiply(glm.vec3.create(), modelTranslation, glm.vec3.fromValues(-1.0, -1.0, -1.0)), modelScale, modelTranslation);
@@ -345,7 +378,8 @@ function setDistanceFieldData(arrays, dims) {
 
     mapUniforms.sdf = uniforms.sdf;
 
-    drawMap();
+    mapDirty = true;
+    volumeDirty = true;
 }
 
 function setProteinData(array, dims) {
@@ -370,22 +404,29 @@ function setProteinData(array, dims) {
 
     setup(proteinData.dims[0], proteinData.dims[1], proteinData.dims[2]);
 
-    window.requestAnimationFrame(function() {drawMap(); });
+    mapDirty = true;
 }
 
 function setDisplayCompartment(value) {
     uniforms.renderIsosurface = value;
+    volumeDirty = true;
 }
 
 function setDisplayProtein(value) {
     uniforms.renderVolume = value;
+    volumeDirty = true;
 }
 
 function setIsovalue(value) {
     uniforms.isovalue = value;
     mapUniforms.isovalue = uniforms.isovalue;
 
-    isovalueDirty = true;
+    mapDirty = true;
+    volumeDirty = true;
+}
+
+function setVoxelSize(value) {
+    voxelSize.set(voxelSize, value[0], value[1], value[2]);
 }
 
 function deleteSelection() {
@@ -404,7 +445,8 @@ function setCompartmentIndex(index) {
         depth: distanceFieldData.dims[2]
     });
 
-    window.requestAnimationFrame(function() {drawMap(); });
+    mapDirty = true;
+    volumeDirty = true;
 }
 
-export { setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, deleteSelection };
+export { setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVoxelSize, deleteSelection };
