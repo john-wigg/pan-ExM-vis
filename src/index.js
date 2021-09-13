@@ -1,3 +1,7 @@
+
+require('file-loader?name=[name].[ext]!./index.html');
+import './index.css';
+
 import * as Renderer from "./js/modules/renderers/renderer.js"
 import LabeledProgressBar from "./js/modules/util/labelled-progress-bar.js"
 import { simd } from "./js/modules/3rdparty/wasm-feature-detect.js"
