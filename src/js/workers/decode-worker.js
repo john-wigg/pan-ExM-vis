@@ -1,9 +1,10 @@
+import * as UTIF from 'utif';
+
 onmessage = function(e) {
     decodeTiff(e.data[0], e.data[1])
 }
 
 function decodeTiff(buffer, bits) {
-    importScripts('./include/3rdparty/UTIF.js');
     let ifd = UTIF.decode(buffer);
     // TODO: Handling of misconfigured data.
     let width = ifd[0]['t256'];
@@ -19,7 +20,7 @@ function decodeTiff(buffer, bits) {
         PixelArray = Uint16Array;
     }
 
-    pixels = new PixelArray(width*height*ifd.length);
+    let pixels = new PixelArray(width*height*ifd.length);
 
     try {
         for (var i = 0; i < ifd.length; ++i) {

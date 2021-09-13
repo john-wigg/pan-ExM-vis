@@ -1,6 +1,16 @@
+import danielssonWasm from "./danielsson.wasm";
+import Danielsson from "./danielsson.js";
+
 onmessage = function(e) {
-    importScripts('./danielsson.js');
-    Module.onRuntimeInitialized = () => {
+    new Promise(async resolve => {
+            const wasm = await fetch(danielssonWasm);
+            const buffer = await wasm.arrayBuffer();
+            const _instance = await Danielsson({
+              wasmBinary: buffer
+            });
+        
+            resolve(_instance)
+    }).then((Module) => {
         var buffer = e.data[0];
         var target = e.data[1];
         var width = e.data[2];
@@ -14,7 +24,7 @@ onmessage = function(e) {
         Module._free(ptr);
         var returnBufSize = width*height*depth;
         var returnBuf = new ArrayBuffer(returnBufSize);
-        new Uint8Array(returnBuf).set(HEAPU8.subarray(returnPtr, returnPtr+returnBufSize));
+        new Uint8Array(returnBuf).set(Module.HEAPU8.subarray(returnPtr, returnPtr+returnBufSize));
         postMessage(['complete', returnBuf, target], [returnBuf]);
-    }
+    });
 }

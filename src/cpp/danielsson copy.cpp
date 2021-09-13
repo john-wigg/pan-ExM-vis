@@ -34,24 +34,24 @@ void sweep(L_t *L, int width, int height, int depth, float vx2, float vy2, float
                 L_t L2 = L[IDX3(i, j, k-1, width, height)];
                 L2.z += 1;
                 L[IDX3(i, j, k, width, height)] = min(L1, L2, vx2, vy2, vz2);
+
+                if (j > 0) {
+                    L_t L1 = L[IDX3(i, j, k  , width, height)];
+                    L_t L2 = L[IDX3(i, j-1, k, width, height)];
+                    L2.y += 1;
+                    L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+
+                    if (i > 0) {
+                        L_t L1 = L[IDX3(i, j, k  , width, height)];
+                        L_t L2 = L[IDX3(i-1, j, k, width, height)];
+                        L2.x += 1;
+                        L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+                    }
+                }
             }
         }
 
         for (int j = 1; j < height; ++j) {
-            for (int i = 0; i < width; ++i) {
-                L_t L1 = L[IDX3(i, j, k  , width, height)];
-                L_t L2 = L[IDX3(i, j-1, k, width, height)];
-                L2.y += 1;
-                L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
-            }
-
-            for (int i = 1; i < width; ++i) {
-                L_t L1 = L[IDX3(i, j, k  , width, height)];
-                L_t L2 = L[IDX3(i-1, j, k, width, height)];
-                L2.x += 1;
-                L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
-            }
-
             for (int i = width-2; i >= 0; --i) {
                 L_t L1 = L[IDX3(i, j, k  , width, height)];
                 L_t L2 = L[IDX3(i+1, j, k, width, height)];
@@ -66,13 +66,13 @@ void sweep(L_t *L, int width, int height, int depth, float vx2, float vy2, float
                 L_t L2 = L[IDX3(i, j+1, k, width, height)];
                 L2.y += 1;
                 L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
-            }
 
-            for (int i = 1; i < width; ++i) {
-                L_t L1 = L[IDX3(i, j, k  , width, height)];
-                L_t L2 = L[IDX3(i-1, j, k, width, height)];
-                L2.x += 1;
-                L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+                if (i > 1) {
+                    L_t L1 = L[IDX3(i, j, k  , width, height)];
+                    L_t L2 = L[IDX3(i-1, j, k, width, height)];
+                    L2.x += 1;
+                    L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+                }
             }
 
             for (int i = width-2; i >= 0; --i) {
@@ -95,24 +95,24 @@ void sweep(L_t *L, int width, int height, int depth, float vx2, float vy2, float
                 L_t L2 = L[IDX3(i, j, k+1, width, height)];
                 L2.z += 1;
                 L[IDX3(i, j, k, width, height)] = min(L1, L2, vx2, vy2, vz2);
+
+                if (j > 1) {
+                    L_t L1 = L[IDX3(i, j, k  , width, height)];
+                    L_t L2 = L[IDX3(i, j-1, k, width, height)];
+                    L2.y += 1;
+                    L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+
+                    if (i > 1) {
+                        L_t L1 = L[IDX3(i, j, k  , width, height)];
+                        L_t L2 = L[IDX3(i-1, j, k, width, height)];
+                        L2.x += 1;
+                        L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+                    }
+                }
             }
         }
 
         for (int j = 1; j < height; ++j) {
-            for (int i = 0; i < width; ++i) {
-                L_t L1 = L[IDX3(i, j, k  , width, height)];
-                L_t L2 = L[IDX3(i, j-1, k, width, height)];
-                L2.y += 1;
-                L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
-            }
-
-            for (int i = 1; i < width; ++i) {
-                L_t L1 = L[IDX3(i, j, k  , width, height)];
-                L_t L2 = L[IDX3(i-1, j, k, width, height)];
-                L2.x += 1;
-                L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
-            }
-
             for (int i = width-2; i >= 0; --i) {
                 L_t L1 = L[IDX3(i, j, k  , width, height)];
                 L_t L2 = L[IDX3(i+1, j, k, width, height)];
@@ -127,13 +127,13 @@ void sweep(L_t *L, int width, int height, int depth, float vx2, float vy2, float
                 L_t L2 = L[IDX3(i, j+1, k, width, height)];
                 L2.y += 1;
                 L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
-            }
 
-            for (int i = 1; i < width; ++i) {
-                L_t L1 = L[IDX3(i, j, k  , width, height)];
-                L_t L2 = L[IDX3(i-1, j, k, width, height)];
-                L2.x += 1;
-                L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+                if (i > 0) {
+                    L_t L1 = L[IDX3(i, j, k  , width, height)];
+                    L_t L2 = L[IDX3(i-1, j, k, width, height)];
+                    L2.x += 1;
+                    L[IDX3(i, j, k  , width, height)] = min(L1, L2, vx2, vy2, vz2);
+                }
             }
 
             for (int i = width-2; i >= 0; --i) {
@@ -229,7 +229,6 @@ unsigned char * danielsson(unsigned char *volume, unsigned char target, int widt
 
                 float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z);
                 if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
-                if (target == 0) dist *= -1.0; // Use target = 0 to create distance map for all compartments.
                 sdf[IDX3(i, j, k, width, height)] = (unsigned char)fmax(fmin((dist + 5.0) * 10.0, 255.0), 0.0);
             } 
         }
