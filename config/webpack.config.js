@@ -376,11 +376,10 @@ module.exports = function (webpackEnv) {
               test: /\.wasm$/,
               type:
                 "javascript/auto" /** this disables webpacks default handling of wasm */,
-              use: [
-                {
-                  loader: "file-loader"
-                }
-              ]
+              loader: "file-loader",
+              options: {
+                name: 'static/wasm/[name].[hash:8].[ext]'
+              }
             },
             // TODO: Merge this config once `image/avif` is in the mime-db
             // https://github.com/jshttp/mime-db
