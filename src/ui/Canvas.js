@@ -6,11 +6,9 @@ const Canvas = props => {
 	const canvasRef = useRef(null)
 
 	useEffect(() => {
-		/*
 		if (props.mainView && props.mapView) {
 			Renderer.main(canvasRef.current, props.mainView, props.mapView);
 		}
-		*/
 	}, [props.mainView, props.mapView])
 
 	useEffect(() => {

@@ -39,11 +39,13 @@ class Tiff {
 
         let properties = (({ t256, t257, t258, t277 }) => ({ t256, t257, t258, t277 }))(ifd[0]);
     
-        if (properties.t277 !== 1) {
+        console.log(properties.t277)
+
+        if (properties.t277[0] !== 1) {
             throw new Error("Only grayscale images are supported.");
         }
     
-        if (properties.t258 !== 8) {
+        if (properties.t258[0] !== 8) {
             throw new Error("Only images with bit depth 8 are supported.");
         }
     

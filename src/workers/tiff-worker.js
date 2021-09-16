@@ -9,9 +9,9 @@ async function decodeTiffBuffer(buffer, onError, onProgress) {
     }
 
     let ifd = UTIF.decode(buffer);
-    let width = ifd[0]['t256'];
-    let height = ifd[0]['t257'];
-    let bps = ifd[0]['t258']; // should be bits
+    let width = ifd[0]['t256'][0];
+    let height = ifd[0]['t257'][0];
+    let bps = ifd[0]['t258'][0]; // should be bits
 
     // TODO: Handling of misconfigured data.
     //let pi = ifd[0]['t262']; // should be 1
@@ -31,7 +31,7 @@ async function decodeTiffBuffer(buffer, onError, onProgress) {
 
     try {
         for (var i = 0; i < ifd.length; ++i) {
-            if (ifd[0]['t256'] !== width || ifd[0]['t257'] !== height) {
+            if (ifd[0]['t256'][0] !== width || ifd[0]['t257'][0] !== height) {
                 throw new Error("One or more slices of the TIFF file have an incorrect format!");
             }
             UTIF.decodeImage(buffer, ifd[i]);

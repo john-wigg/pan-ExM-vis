@@ -80,7 +80,7 @@ class Import extends Component {
           await tiffSegmentation.open(fileSegmentation);
         } catch (e) {
           this.setState({
-            preImportError: e
+            preImportError: e.message
           });
           return;
         }
