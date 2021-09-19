@@ -3,7 +3,7 @@ import sdfWasm from "./sdf.wasm";
 import Sdf from "./sdf.js";
 
 async function sdf(tiff, voxelSize, target, onProgress) {
-    const wasm = await fetch(sdfWasm);
+    const wasm = await fetch("../../" + sdfWasm);
     const buffer = await wasm.arrayBuffer();
     const Module = await Sdf({
       wasmBinary: buffer
