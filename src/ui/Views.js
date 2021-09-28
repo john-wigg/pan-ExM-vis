@@ -46,6 +46,8 @@ const Views= props => {
             isovalue={props.isovalue}
             compartmentIndex={props.compartmentIndex}
             ready={props.ready}
+            debugSamples={props.debugSamples}
+            useLod={props.useLod}
         />
         <div className="views d-flex flex-col">
             <div className="flex-fill d-flex flex-row">

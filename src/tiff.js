@@ -38,8 +38,6 @@ class Tiff {
         }
 
         let properties = (({ t256, t257, t258, t277 }) => ({ t256, t257, t258, t277 }))(ifd[0]);
-    
-        console.log(properties.t277)
 
         if (properties.t277[0] !== 1) {
             throw new Error("Only grayscale images are supported.");
@@ -65,11 +63,13 @@ class Tiff {
     };
 
     async decode(onError, onProgress) {
-        const decodeTiffBuffer = Comlink.wrap(new Worker('./workers/tiff-worker.js', {
+        const worker = new Worker('./workers/tiff-worker.js', {
             name: 'tiff-worker',
             type: 'module'
-          }));
+          });
+        const decodeTiffBuffer = Comlink.wrap(worker);
         this.pixels = await decodeTiffBuffer(this.buffer, Comlink.proxy(onError), Comlink.proxy(onProgress));
+        worker.terminate();
     };
 }
 

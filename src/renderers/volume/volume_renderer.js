@@ -24,6 +24,10 @@ class VolumeRenderer {
 	setSkeleton(vec) { };
 
 	selectionUpdated() { };
+
+	setDebugSamples(value) { };
+
+	setUseLod(value) { };
 }
 
 export { VolumeRenderer };

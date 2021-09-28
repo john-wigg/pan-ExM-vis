@@ -17,14 +17,17 @@ class Main extends Component {
 			voxelSize: [0, 0, 0],
 			bufferDims: [0, 0, 0],
 			sdfBuffers: [],
-			proteinBuffer: "",
+			proteinPyramid: "",
 			ready: false,
 			compartmentIndex: 0,
 			displaySegmentation: true,
 			displayProtein: true,
 			globalHistogram: [],
 			labelsHistogram: [],
-			localHistogram: []
+			localHistogram: [],
+			// Debug variables
+			debugSamples: false,
+			useLod: true
 		}
 		
 		this.handleShowImport = this.handleShowImport.bind(this);
@@ -35,6 +38,8 @@ class Main extends Component {
 		this.handleCompartmentSelection = this.handleCompartmentSelection.bind(this);
 		this.handleDisplaySegmentation = this.handleDisplaySegmentation.bind(this);
 		this.handleDisplayProtein = this.handleDisplayProtein.bind(this);
+		this.handleDebugSamples = this.handleDebugSamples.bind(this);
+		this.handleUseLod = this.handleUseLod.bind(this);
 	}
 
 	handleShowImport() {
@@ -52,7 +57,7 @@ class Main extends Component {
 	handleCompleteImport(sdfBuffers, proteinBuffer, bufferDims, voxelSize, hist, histLabels) {
 		this.setState({
 			sdfBuffers: sdfBuffers,
-			proteinBuffer: proteinBuffer,
+			proteinPyramid: proteinBuffer,
 			bufferDims: bufferDims,
 			voxelSize: voxelSize,
 			showImport: false,
@@ -111,6 +116,18 @@ class Main extends Component {
 		})
 	}
 
+	handleDebugSamples(value) {
+		this.setState({
+			debugSamples: value
+		})
+	}
+
+	handleUseLod(value) {
+		this.setState({
+			useLod: value
+		})
+	}
+
 	render() {
 		let volumeSize = [
 			this.state.bufferDims[0] * this.state.voxelSize[0],
@@ -139,13 +156,15 @@ class Main extends Component {
 						selection={this.state.compartmentIndex}
 						onDisplaySegmentation={this.handleDisplaySegmentation}
 						onDisplayProtein={this.handleDisplayProtein}
+						onDebugSamples={this.handleDebugSamples}
+						onUseLod={this.handleUseLod}
 						displayProtein={this.state.displayProtein}
 						displaySegmentation={this.state.displaySegmentation}
 					/>
 				</Overlay>
 				<Views
 					sdf={{buffers: this.state.sdfBuffers, dims: this.state.bufferDims}}
-					protein={{buffer: this.state.proteinBuffer, dims: this.state.bufferDims}}
+					protein={{buffer: this.state.proteinPyramid, dims: this.state.bufferDims}}
 					volumeSize={volumeSize}
 					displayProtein={this.state.displayProtein}
 					displaySegmentation={this.state.displaySegmentation}
@@ -156,6 +175,8 @@ class Main extends Component {
 					localHistogram={this.state.localHistogram}
 					globalHistogram={this.state.globalHistogram}
 					labelsHistogram={this.state.labelsHistogram}
+					debugSamples={this.state.debugSamples}
+					useLod={this.state.useLod}
 				/>
 			</>
 		)

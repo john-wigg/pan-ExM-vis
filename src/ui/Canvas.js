@@ -53,8 +53,20 @@ const Canvas = props => {
 		}
 	}, [props.compartmentIndex, props.ready])
 
+	useEffect(() => {
+		if (props.ready) {
+			Renderer.setDebugSamples(props.debugSamples);
+		}	
+	}, [props.debugSamples, props.ready])
+
+	useEffect(() => {
+		if (props.ready) {
+			Renderer.setUseLod(props.useLod);
+		}
+	}, [props.useLod, props.ready])
+
 	return (
-		<canvas className="renderer" ref={canvasRef} {...props} />
+		<canvas className="renderer" ref={canvasRef}/>
 	);
 }
 

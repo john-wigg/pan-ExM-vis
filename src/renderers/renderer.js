@@ -32,15 +32,31 @@ function setVolumeSize(size) {
 	volumeRenderer.setVolumeSize(size[0], size[1], size[2]);
 }
 
-function setProteinData(array, dims) {
-	const texture = new THREE.DataTexture3D(array, dims[0], dims[1], dims[2]);
-	texture.format = THREE.RedFormat;
-	texture.minFilter = THREE.LinearFilter;
-	texture.magFilter = THREE.LinearFilter;
-	texture.unpackAlignment = 1;
+function setProteinData(pyramid, dims) {
+	let textures = []
+	let w = dims[0];
+	let h = dims[1];
+	let d = dims[2];
+	for (let i = 0; i < pyramid.length; ++i) {
+		const texture = new THREE.DataTexture3D(pyramid[i], w, h, d);
+		texture.format = THREE.RGFormat;
+		texture.type = THREE.UnsignedByteType;
+		texture.internalFormat = 'RG8';
+		texture.minFilter = THREE.LinearFilter;
+		texture.magFilter = THREE.LinearFilter;
+		texture.generateMipmaps = false;
+		texture.unpackAlignment = 1;
+
+		w = Math.ceil(w/2.0);
+		h = Math.ceil(h/2.0);
+		d = Math.ceil(d/2.0);
+
+		textures.push(texture);
+	}
+
 	
-	volumeRenderer.setProteinData(texture);
-	mapRenderer.setProteinData(texture);
+	volumeRenderer.setProteinData(textures);
+	mapRenderer.setProteinData(textures[0]);
 }
 
 function setDistanceFieldData(arrays, dims) {
@@ -68,16 +84,14 @@ async function init() {
 
 function animate() {
 	requestAnimationFrame( animate );
-	stats.begin();
-
+	
 	volumeRenderer.render();
 	mapRenderer.render();
 
-	stats.end();
+	stats.update();
 }
 
 function handleSelectionUpdated() {
-	console.log("UUUPS");
 	volumeRenderer.selectionUpdated();
 }
 
@@ -115,4 +129,12 @@ function getMapProjectionPixels() {
 	return mapRenderer.getProjectionPixels();
 }
 
-export { main, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, getMapSelectionPixels, getMapProjectionPixels};
+function setDebugSamples(value) {
+	volumeRenderer.setDebugSamples(value);
+}
+
+function setUseLod(value) {
+	volumeRenderer.setUseLod(value);
+}
+
+export { main, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod};

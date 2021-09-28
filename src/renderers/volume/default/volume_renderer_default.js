@@ -36,16 +36,14 @@ class VolumeRendererDefault extends VolumeRenderer {
 
 	constructor(renderer, dom) {
 		super();
-		console.log(dom);
 		this.dom = dom;
 		this.renderer = renderer;
 
 		this.camera = new THREE.PerspectiveCamera( 75, dom.clientWidth/dom.clientHeight, 0.1, 5000 );
-		this.camera.position.z = 5;
-
+		
 		this.controls = new OrbitControls(this.camera, dom);
-
-		console.log(require('./shaders/volume_renderer_vert.glsl'));
+		this.camera.position.y = -85;
+		this.controls.update();
 
 		this.materialMarchVolume = new THREE.RawShaderMaterial( {
 			glslVersion: THREE.GLSL3,
@@ -53,7 +51,16 @@ class VolumeRendererDefault extends VolumeRenderer {
 				modelview: { value: this.camera.matrixWorldInverse },
 				proj: {value: this.camera.projectionMatrix },
 				resolution: { value: new THREE.Vector2(0, 0) },
-				volume: { value: null },
+				volume0: { value:null },
+				volume1: { value:null },
+				volume2: { value:null },
+				volume3: { value:null },
+				volume4: { value:null },
+				volume5: { value:null },
+				volume6: { value:null },
+				volume7: { value:null },
+				volume8: { value:null },
+				volume9: { value:null },
 				volumeSize: { value: null },
 				texDepth: { value: null },
 				sdf: { value: null },
@@ -61,7 +68,9 @@ class VolumeRendererDefault extends VolumeRenderer {
 				displayProtein: { value: false },
 				displayCompartments: { value: false },
 				selection: { value: false },
-				projection: { value: false }
+				projection: { value: false },
+				debugSamples: { value: false },
+				useLod: { value: true }
 			},
 			vertexShader: require('./shaders/volume_renderer_vert.glsl'),
 			fragmentShader: require('./shaders/volume_renderer_frag.glsl'),
@@ -175,7 +184,11 @@ class VolumeRendererDefault extends VolumeRenderer {
 	// Set the protein data.
 	setProteinData(texture) {
 		this.volumeTexture = texture;
-		this.materialMarchVolume.uniforms.volume.value = this.volumeTexture;
+		
+		for (let i = 0; i < 9; ++i) {
+			this.materialMarchVolume.uniforms["volume" + i].value = this.volumeTexture[i];
+		}
+		
 		this.volumeDirty = true;
 	};
 
@@ -249,6 +262,14 @@ class VolumeRendererDefault extends VolumeRenderer {
 		points.position.z = -0.5*this.volumeSize.z;
 
 		this.sceneGrid.add(points);
+	}
+
+	setDebugSamples(value) {
+		this.materialMarchVolume.uniforms.debugSamples.value = value;
+	}
+
+	setUseLod(value) {
+		this.materialMarchVolume.uniforms.useLod.value = value;
 	}
 }
 

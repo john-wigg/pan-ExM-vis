@@ -112,9 +112,10 @@ class Import extends Component {
         var numCompartments = tiffSegmentation.pixels.reduce(reducer);
 
         let promises = [];
+        let workers = [];
         let progress = new Array(numCompartments+1);
 
-        for (var i = 0; i < numCompartments+1; ++i) {
+        for (let i = 0; i < numCompartments+1; ++i) {
             const target = i;
             const onProgress = (p) => {
                 progress[target] = p * 100;
@@ -125,14 +126,65 @@ class Import extends Component {
                     name: 'sdf-worker',
                     type: 'module'
                 });
+                workers.push(worker);
                 const sdf = Comlink.wrap(worker);
                 let result = sdf(tiffSegmentation, voxelSize, target, Comlink.proxy(onProgress));
                 resolve(result);
             }));
         }
 
-        const sdfBuffers = await Promise.all(promises);
+        //const sdfBuffers = await Promise.all(promises); // This needs too much memory for some reason?
+        let sdfBuffers = [];
+        for (let i = 0; i < promises.length; ++i) {
+            sdfBuffers.push(await promises[i]);
+        }
+        for (let i = 0; i < workers.length; ++i) {
+            workers[i].terminate();
+        }
         this.onSdfProgress(100);
+
+        // Compute pyramid.
+        let pyramid = [];
+        let w = tiffProtein.width;
+        let h = tiffProtein.height;
+        let d = tiffProtein.depth;
+
+        let level0 = new Uint8Array(2*w*h*d);
+        for (let i = 0; i < w; ++i) {
+            for (let j = 0; j < h; ++j) {
+                for (let k = 0; k < d; ++k) {
+                    level0[2*(k*w*h+j*w+i)] = tiffProtein.pixels[k*w*h+j*w+i];
+                    level0[2*(k*w*h+j*w+i)+1] = level0[2*(k*w*h+j*w)+i];
+                }
+            }
+        }
+        pyramid.push(level0);
+
+        while (true) {
+            let pw = w;
+            let ph = h;
+            let pd = d;
+            w = Math.ceil(w / 2.0);
+            h = Math.ceil(h / 2.0);
+            d = Math.ceil(d / 2.0);
+
+            let plevel = pyramid[pyramid.length - 1];
+            let level = new Uint8Array(2*w*h*d);
+            for (let pi = 0; pi < pw; ++pi) {
+                for (let pj = 0; pj < ph; ++pj) {
+                    for (let pk = 0; pk < pd; ++pk) {
+                        let i = Math.floor(pi/2.0);
+                        let j = Math.floor(pj/2.0);
+                        let k = Math.floor(pk/2.0);
+                        level[2*(k*w*h+j*w+i)] = Math.max(level[2*(k*w*h+j*w+i)], plevel[2*(pk*pw*ph+pj*pw+pi)]);
+                        level[2*(k*w*h+j*w+i)+1] = Math.min(level[2*(k*w*h+j*w+i)+1], plevel[2*(pk*pw*ph+pj*pw+pi)+1]);
+                    }
+                }
+            }
+            pyramid.push(level);
+
+            if (w <= 1 || h <= 1 || d <= 1) break;
+        }
 
         // Compute global histogram.
         const bitDepth = 8;
@@ -158,7 +210,7 @@ class Import extends Component {
             step: "dialog"
         });
 
-        this.props.onComplete(sdfBuffers, tiffProtein.pixels, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
+        this.props.onComplete(sdfBuffers, pyramid, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
                               [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)],
                               hist, histLabels);
     }

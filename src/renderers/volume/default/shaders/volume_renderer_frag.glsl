@@ -3,7 +3,17 @@ precision highp sampler3D;
 
 out vec4 FragColor;
 
-uniform sampler3D volume;
+uniform sampler3D volume0;
+uniform sampler3D volume1;
+uniform sampler3D volume2;
+uniform sampler3D volume3;
+uniform sampler3D volume4;
+uniform sampler3D volume5;
+uniform sampler3D volume6;
+uniform sampler3D volume7;
+uniform sampler3D volume8;
+uniform sampler3D volume9;
+
 uniform sampler3D sdf;
 
 uniform sampler2D texDepth;
@@ -21,6 +31,9 @@ uniform float isovalue;
 
 uniform bool displayProtein;
 uniform bool displayCompartments;
+uniform bool useLod;
+
+uniform bool debugSamples;
 
 in vec3 vOrigin;
 in vec3 vDirection;
@@ -49,8 +62,28 @@ vec3 matlab_spring(float x) {
 }
 
 // Sample the protein channel, local coordinates.
-float sampleProtein(vec3 p) {
-    return texture(volume, p/volumeSize + 0.5).r;
+vec2 sampleProtein(vec3 p, int lod) {
+    if (lod == 0) {
+        return texture(volume0, p/volumeSize + 0.5).rg;
+    } else if (lod == 1) {
+        return texture(volume1, p/volumeSize + 0.5).rg;
+    } else if (lod == 2) {
+        return texture(volume2, p/volumeSize + 0.5).rg;
+    } else if (lod == 3) {
+        return texture(volume3, p/volumeSize + 0.5).rg;
+    } else if (lod == 4) {
+        return texture(volume4, p/volumeSize + 0.5).rg;
+    } else if (lod == 5) {
+        return texture(volume5, p/volumeSize + 0.5).rg;
+    } else if (lod == 6) {
+        return texture(volume6, p/volumeSize + 0.5).rg;
+    } else if (lod == 7) {
+        return texture(volume7, p/volumeSize + 0.5).rg;
+    } else if (lod == 8) {
+        return texture(volume8, p/volumeSize + 0.5).rg;
+    } else {
+        return texture(volume9, p/volumeSize + 0.5).rg;
+    }
 }
 
 float sampleSdf(vec3 p) {
@@ -75,6 +108,7 @@ void main()
     float normalizedDepth = texture(texDepth, gl_FragCoord.xy / resolution).r;
     vec4 ndc = vec4(gl_FragCoord.xy / resolution * 2.0 - 1.0,
                     normalizedDepth * 2.0 - 1.0, 1.0f);
+
     vec4 vcoords = inverse(proj) * ndc;
     vcoords /= vcoords.w;
     float depth = -vcoords.z;
@@ -84,6 +118,8 @@ void main()
 
     // Render render isosurface
     vec4 surfaceColor = vec4(0.0f);
+    vec4 proteinColor = vec4(0.0f);
+    
     if (displayCompartments) {
         vec3 rayPos = vOrigin + boxDst.x * rayDir;
         float dist = 0.0;
@@ -108,49 +144,61 @@ void main()
     }
 
     // Render volume.
-    vec4 proteinColor = vec4(0.0f);
-    if (displayProtein) {
-        bool inProximity = false;
-        vec3 rayPos = vOrigin + boxDst.x * rayDir;
+    float steps = 0.0;
+    vec3 rayPos = vOrigin + boxDst.x * rayDir;
 
-        float stepSize = 0.5;
-        float dist = 0.0;
-        while (dist < boxDst.y) {
-            float sdfVal = sampleSdf(rayPos) - isovalue;
-            
-            if (!inProximity) {
-                if (sdfVal < 0.01) {
-                    inProximity = true;
-                } else {
-                    dist += sdfVal;
-                    rayPos += sdfVal * rayDir;
-                }
+    float baseStepSize = 0.25;
+    float dist = 0.0;
+
+    // This works better than an if statement for some reason (at least on Intel GPUs)
+    float dstToMarch = float(displayProtein)*boxDst.y;
+
+    while (dist < dstToMarch) {
+        int lod = 0;
+        float stepSize = baseStepSize;
+        
+        if (useLod) {
+            if (dist + boxDst.x < 40.0) {
+                lod = 0;
+                stepSize = baseStepSize;
+            } else if (dist + boxDst.x < 80.0) {
+                lod = 1;
+                stepSize = baseStepSize * 2.0;
+            } else if (dist + boxDst.x < 160.0) {
+                lod = 2;
+                stepSize = baseStepSize * 4.0;
             } else {
-                if (sdfVal > 0.01) {
-                    inProximity = false;
-                    dist += sdfVal;
-                    rayPos += sdfVal * rayDir;
-                } else {
-                    float density = sampleProtein(rayPos);
-                    vec3 color = colormap(density);
-
-                    vec3 uvw = rayPos / volumeSize + 0.5;
-                    float distanceToMaximum = clamp(1.0 - abs(uvw.z - texture(projection, uvw.xy).g) / 0.025, 0.0, 1.0);
-                    float selectionMask = texture(selection, uvw.xy).r;
-
-                    float highlight = distanceToMaximum * selectionMask;
-                    color = mix(color, 3.0 * matlab_spring(density), highlight);
-
-                    proteinColor.rgb += density * (1.0 - proteinColor.a) * color;
-                    proteinColor.a += density * (1.0 - proteinColor.a);
-                    dist += stepSize;
-                    rayPos += stepSize * rayDir;
-                }
+                lod = 3;
+                stepSize = baseStepSize * 8.0;
             }
-            if (dist + boxDst.x > depth) break;
         }
+
+        float density = 0.75 * sampleProtein(rayPos, lod).r;
+        vec3 color = colormap(density);
+
+        vec3 uvw = rayPos / volumeSize + 0.5;
+        float distanceToMaximum = clamp(1.0 - abs(uvw.z - texture(projection, uvw.xy).g) / 0.025, 0.0, 1.0);
+        float selectionMask = texture(selection, uvw.xy).r;
+
+        float highlight = distanceToMaximum * selectionMask;
+        color = mix(color, 3.0 * matlab_spring(density), highlight);
+
+        proteinColor.rgb += density * (1.0 - proteinColor.a) * color;
+        proteinColor.a += density * (1.0 - proteinColor.a);
+        dist += stepSize;
+        rayPos += stepSize * rayDir;
+
+        steps += 1.0;
+
+        if (proteinColor.a > 0.99f) break;
+        if (dist + boxDst.x > depth) break;
     }
 
-    FragColor.rgb = mix(surfaceColor.rgb, proteinColor.rgb, proteinColor.a);
-    FragColor.a = max(surfaceColor.a, proteinColor.a);
+    if (debugSamples) {
+        FragColor.rgb = matlab_spring(steps / 500.0);
+        FragColor.a = 1.0;
+    } else {
+        FragColor.rgb = mix(surfaceColor.rgb, proteinColor.rgb, proteinColor.a);
+        FragColor.a = max(surfaceColor.a, proteinColor.a);
+    }
 }
