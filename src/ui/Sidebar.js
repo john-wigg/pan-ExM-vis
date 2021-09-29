@@ -29,6 +29,10 @@ const Sidebar = props => {
         props.onUseLod(e.target.checked);
     }
 
+    const handleChangeIsovalue = (e) => {
+        props.onIsovalue(e.target.value);
+    }
+
     let dropdownItems = [
     <Dropdown.Item
         onClick={() => handleSelectCompartmet(0)}
@@ -70,7 +74,7 @@ const Sidebar = props => {
                                 </Form.Check>
                                 <Form.Range
                                     disabled={props.numCompartments===0}
-                                    
+                                    onChange={handleChangeIsovalue}
                                 />
                                 <Dropdown>
                                     <Dropdown.Toggle disabled={props.numCompartments===0}>

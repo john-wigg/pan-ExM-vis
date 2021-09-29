@@ -15,13 +15,13 @@ class Main extends Component {
 			showSidebar: false,
 			showImport: false,
 			voxelSize: [0, 0, 0],
-			bufferDims: [0, 0, 0],
-			sdfBuffers: [],
-			proteinPyramid: "",
+			sdf: {buffers: [], dims: [0, 0, 0]},
+			protein: {buffer: [], dims: [0, 0, 0]},
 			ready: false,
 			compartmentIndex: 0,
 			displaySegmentation: true,
 			displayProtein: true,
+			isovalue: 0,
 			globalHistogram: [],
 			labelsHistogram: [],
 			localHistogram: [],
@@ -40,6 +40,7 @@ class Main extends Component {
 		this.handleDisplayProtein = this.handleDisplayProtein.bind(this);
 		this.handleDebugSamples = this.handleDebugSamples.bind(this);
 		this.handleUseLod = this.handleUseLod.bind(this);
+		this.handleIsovalue = this.handleIsovalue.bind(this);
 	}
 
 	handleShowImport() {
@@ -54,16 +55,15 @@ class Main extends Component {
 		});
 	}
 
-	handleCompleteImport(sdfBuffers, proteinBuffer, bufferDims, voxelSize, hist, histLabels) {
+	handleCompleteImport(sdfBuffers, proteinBuffers, bufferDims, voxelSize, hist, histLabels) {
 		this.setState({
-			sdfBuffers: sdfBuffers,
-			proteinPyramid: proteinBuffer,
-			bufferDims: bufferDims,
+			sdf: {buffers: sdfBuffers, dims: bufferDims},
+			protein: {buffer: proteinBuffers, dims: bufferDims},
 			voxelSize: voxelSize,
 			showImport: false,
 			ready: true,
 			globalHistogram: hist,
-			labelsHistogram: histLabels
+			labelsHistogram: histLabels,
 		})
 	}
 
@@ -128,11 +128,18 @@ class Main extends Component {
 		})
 	}
 
+	handleIsovalue(value) {
+		this.setState({
+			isovalue: value
+		})
+	}
+
 	render() {
+		console.log("HEY")
 		let volumeSize = [
-			this.state.bufferDims[0] * this.state.voxelSize[0],
-			this.state.bufferDims[1] * this.state.voxelSize[1],
-			this.state.bufferDims[2] * this.state.voxelSize[2]
+			this.state.sdf.dims[0] * this.state.voxelSize[0],
+			this.state.sdf.dims[1] * this.state.voxelSize[1],
+			this.state.sdf.dims[2] * this.state.voxelSize[2]
 		]
 
 		return (
@@ -151,24 +158,24 @@ class Main extends Component {
 					/>
 					<Sidebar
 						open={this.state.showSidebar}
-						numCompartments={this.state.sdfBuffers.length}
+						numCompartments={this.state.sdf.buffers.length}
 						onCompartmentSelection={this.handleCompartmentSelection}
 						selection={this.state.compartmentIndex}
 						onDisplaySegmentation={this.handleDisplaySegmentation}
 						onDisplayProtein={this.handleDisplayProtein}
 						onDebugSamples={this.handleDebugSamples}
 						onUseLod={this.handleUseLod}
+						onIsovalue={this.handleIsovalue}
 						displayProtein={this.state.displayProtein}
 						displaySegmentation={this.state.displaySegmentation}
 					/>
 				</Overlay>
 				<Views
-					sdf={{buffers: this.state.sdfBuffers, dims: this.state.bufferDims}}
-					protein={{buffer: this.state.proteinPyramid, dims: this.state.bufferDims}}
+					sdf={this.state.sdf}
+					protein={this.state.protein}
 					volumeSize={volumeSize}
 					displayProtein={this.state.displayProtein}
 					displaySegmentation={this.state.displaySegmentation}
-					isovalue={0}
 					compartmentIndex={this.state.compartmentIndex}
 					ready={this.state.ready}
 					onClickImport={this.handleShowImport}
@@ -177,6 +184,7 @@ class Main extends Component {
 					labelsHistogram={this.state.labelsHistogram}
 					debugSamples={this.state.debugSamples}
 					useLod={this.state.useLod}
+					isovalue={this.state.isovalue}
 				/>
 			</>
 		)

@@ -200,7 +200,7 @@ class VolumeRendererDefault extends VolumeRenderer {
 
 	setIsovalue(value) {
 		this.materialMarchVolume.uniforms.isovalue.value = value;
-		this.volumeDirty = true;
+		//this.volumeDirty = true;
 	}
 
 	setCompartmentIndex(value) {

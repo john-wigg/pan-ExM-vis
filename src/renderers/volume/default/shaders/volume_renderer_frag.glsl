@@ -154,37 +154,42 @@ void main()
     float dstToMarch = float(displayProtein)*boxDst.y;
 
     while (dist < dstToMarch) {
-        int lod = 0;
+        float sdfVal = sampleSdf(rayPos);
+
         float stepSize = baseStepSize;
-        
-        if (useLod) {
-            if (dist + boxDst.x < 40.0) {
-                lod = 0;
-                stepSize = baseStepSize;
-            } else if (dist + boxDst.x < 80.0) {
-                lod = 1;
-                stepSize = baseStepSize * 2.0;
-            } else if (dist + boxDst.x < 160.0) {
-                lod = 2;
-                stepSize = baseStepSize * 4.0;
-            } else {
-                lod = 3;
-                stepSize = baseStepSize * 8.0;
+        if (sdfVal < isovalue) {
+            int lod = 0;
+            
+            if (useLod) {
+                if (dist + boxDst.x < 40.0) {
+                    lod = 0;
+                    stepSize = baseStepSize;
+                } else if (dist + boxDst.x < 80.0) {
+                    lod = 1;
+                    stepSize = baseStepSize * 2.0;
+                } else if (dist + boxDst.x < 160.0) {
+                    lod = 2;
+                    stepSize = baseStepSize * 4.0;
+                } else {
+                    lod = 3;
+                    stepSize = baseStepSize * 8.0;
+                }
             }
+
+            float density = 0.75 * sampleProtein(rayPos, lod).r;
+            vec3 color = colormap(density);
+
+            vec3 uvw = rayPos / volumeSize + 0.5;
+            float distanceToMaximum = clamp(1.0 - abs(uvw.z - texture(projection, uvw.xy).g) / 0.025, 0.0, 1.0);
+            float selectionMask = texture(selection, uvw.xy).r;
+
+            float highlight = distanceToMaximum * selectionMask;
+            color = mix(color, 3.0 * matlab_spring(density), highlight);
+
+            proteinColor.rgb += density * (1.0 - proteinColor.a) * color;
+            proteinColor.a += density * (1.0 - proteinColor.a);
         }
 
-        float density = 0.75 * sampleProtein(rayPos, lod).r;
-        vec3 color = colormap(density);
-
-        vec3 uvw = rayPos / volumeSize + 0.5;
-        float distanceToMaximum = clamp(1.0 - abs(uvw.z - texture(projection, uvw.xy).g) / 0.025, 0.0, 1.0);
-        float selectionMask = texture(selection, uvw.xy).r;
-
-        float highlight = distanceToMaximum * selectionMask;
-        color = mix(color, 3.0 * matlab_spring(density), highlight);
-
-        proteinColor.rgb += density * (1.0 - proteinColor.a) * color;
-        proteinColor.a += density * (1.0 - proteinColor.a);
         dist += stepSize;
         rayPos += stepSize * rayDir;
 

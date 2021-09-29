@@ -11,18 +11,21 @@ const Canvas = props => {
 		}
 	}, [props.mainView, props.mapView])
 
+	
 	useEffect(() => {
 		if (props.ready) {
 			Renderer.setDistanceFieldData(props.sdf.buffers, props.sdf.dims);
 		}
 	}, [props.sdf, props.ready])
-
+	
+	
 	useEffect(() => {
 		if (props.ready) {
 			Renderer.setProteinData(props.protein.buffer, props.protein.dims);
 		}
 	}, [props.protein, props.ready])
 
+	
 	useEffect(() => {
 		if (props.ready) {
 			Renderer.setVolumeSize(props.volumeSize);
@@ -42,12 +45,6 @@ const Canvas = props => {
 	}, [props.displaySegmentation, props.ready])
 
 	useEffect(() => {
-		if (props.isovalue) {
-			Renderer.setIsovalue(props.isovalue);
-		}
-	}, [props.isovalue, props.ready])
-
-	useEffect(() => {
 		if (props.ready) {
 			Renderer.setCompartmentIndex(props.compartmentIndex);
 		}
@@ -64,6 +61,12 @@ const Canvas = props => {
 			Renderer.setUseLod(props.useLod);
 		}
 	}, [props.useLod, props.ready])
+
+	useEffect(() => {
+		if (props.ready) {
+			Renderer.setIsovalue(props.isovalue);
+		}
+	}, [props.isovalue, props.ready])
 
 	return (
 		<canvas className="renderer" ref={canvasRef}/>

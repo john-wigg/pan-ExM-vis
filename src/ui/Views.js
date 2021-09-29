@@ -43,11 +43,11 @@ const Views= props => {
             volumeSize={props.volumeSize}
             displayProtein={props.displayProtein}
             displaySegmentation={props.displaySegmentation}
-            isovalue={props.isovalue}
             compartmentIndex={props.compartmentIndex}
             ready={props.ready}
             debugSamples={props.debugSamples}
             useLod={props.useLod}
+            isovalue={props.isovalue}
         />
         <div className="views d-flex flex-col">
             <div className="flex-fill d-flex flex-row">
