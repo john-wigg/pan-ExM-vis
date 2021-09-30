@@ -118,7 +118,9 @@ function setSkeleton(vec) {
 }
 
 function deleteSelection() {
-	mapRenderer.deleteSelection();
+	if (mapRenderer) {
+		mapRenderer.deleteSelection();
+	}
 }
 
 function getMapSelectionPixels() {
@@ -129,6 +131,11 @@ function getMapProjectionPixels() {
 	return mapRenderer.getProjectionPixels();
 }
 
+function setMapSelectionPixels(pixels, width, height) {
+	const texture = new THREE.DataTexture( pixels, width, height, THREE.RGBAFormat );
+	mapRenderer.setSelectionFromTexture(texture);
+}
+
 function setDebugSamples(value) {
 	volumeRenderer.setDebugSamples(value);
 }
@@ -137,4 +144,16 @@ function setUseLod(value) {
 	volumeRenderer.setUseLod(value);
 }
 
-export { main, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod};
+function setPenMode(mode) {
+	if (mapRenderer) {
+		mapRenderer.setPenMode(mode);
+	}
+}
+
+function setPenSize(value) {
+	if (mapRenderer) {
+		mapRenderer.setPenSize(value);
+	}
+}
+
+export { main, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};

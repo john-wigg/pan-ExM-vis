@@ -4,6 +4,9 @@ import Button from 'react-bootstrap/Button'
 
 import Canvas from './Canvas';
 import Plots from './Plots'
+import MapTools from './MapTools'
+
+import * as Renderer from '../renderers/renderer.js'
 
 const Views= props => {
     const mainRef = useRef(null);
@@ -35,6 +38,32 @@ const Views= props => {
     );
     return(
         <>
+
+        <div className="views d-flex flex-col">
+            <div className="flex-fill d-flex flex-row">
+                <div className="flex-fill">
+                    {importPrompt}
+                    <div style={{"height": "100%"}} ref={mainRef}></div>
+                </div>
+                <div className="v-divider"></div>
+                <div className="flex-fill d-flex flex-column">
+                    <div className="flex-fill">
+                        <div>
+                            <MapTools />
+                        </div>
+                        <div style={{"height": "100%"}} ref={mapRef}></div>
+                    </div>
+                    <div className="h-divider"></div>
+                    <div className="flex-fill">
+                        <Plots
+                            localHistogram={props.localHistogram}
+                            globalHistogram={props.globalHistogram}
+                            labelsHistogram={props.labelsHistogram}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
         <Canvas
             mainView={mainView}
             mapView={mapView}
@@ -49,27 +78,8 @@ const Views= props => {
             useLod={props.useLod}
             isovalue={props.isovalue}
         />
-        <div className="views d-flex flex-col">
-            <div className="flex-fill d-flex flex-row">
-                <div ref={mainRef} className="flex-fill">
-                    {importPrompt}
-                </div>
-                <div className="v-divider"></div>
-                <div className="flex-fill d-flex flex-column">
-                    <div ref={mapRef} className="flex-fill"></div>
-                    <div className="h-divider"></div>
-                    <div className="flex-fill">
-                        <Plots
-                            localHistogram={props.localHistogram}
-                            globalHistogram={props.globalHistogram}
-                            labelsHistogram={props.labelsHistogram}
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-        </>)
-    ;
+        </>
+    );
 }
 
 export default Views

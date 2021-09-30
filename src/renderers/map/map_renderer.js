@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
 class MapRenderer {
     dom;
     renderer;
@@ -14,6 +16,8 @@ class MapRenderer {
 
 	sceneMap;
 	materialMap;
+
+	planeMap;
 
 	volumeTexture;
 	sdfTextures;
@@ -48,7 +52,12 @@ class MapRenderer {
 				clear: { value: true },
 				lastPosition: { value: new THREE.Vector2(0.0, 0.0) },
 				position: { value: new THREE.Vector2(0.0, 0.0) },
-				depressed: { value: false }
+				depressed: { value: false },
+				penMode: {value: 0 },
+				penSize: {value: 8.0 },
+				resolution: {value: 1024},
+				restore: {value: null },
+				doRestore: { value: false }
 			},
 			transparent: true
 		});
@@ -66,16 +75,25 @@ class MapRenderer {
 		this.renderTargetSelection = new THREE.WebGLRenderTarget(1024, 1024);
 		this.renderTargetProjection = new THREE.WebGLRenderTarget(1024, 1024);
 
-		this.camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+		const aspect = dom.clientWidth/dom.clientHeight
+
+		this.camera = new THREE.OrthographicCamera( -aspect, aspect, 1, - 1, 0, 2 );
+		this.controls = new OrbitControls(this.camera, dom);
+		this.camera.position.z = 1.0;
+		this.controls.enableRotate = false;
+		this.controls.update();
 
 		{
+		this.cameraProjection = new THREE.OrthographicCamera(-1, 1, 1, - 1, 0, 2 );
 		this.sceneProjection = new THREE.Scene();
 		let plane = new THREE.PlaneGeometry( 2, 2 );
 		let quad = new THREE.Mesh(plane, this.materialProjection);
+		this.planeMap = quad;
 		this.sceneProjection.add(quad);
 		}
 
 		{
+		this.cameraSelection = new THREE.OrthographicCamera(-1, 1, 1, - 1, 0, 2 );
 		this.sceneSelection = new THREE.Scene();
 		let plane = new THREE.PlaneGeometry( 2, 2 );
 		let quad = new THREE.Mesh(plane, this.materialSelection);
@@ -87,6 +105,7 @@ class MapRenderer {
 		let plane = new THREE.PlaneGeometry( 2, 2 );
 		let quad = new THREE.Mesh(plane, this.materialMap);
 		this.sceneMap.add(quad);
+		this.sceneMap.add(this.camera);
 		}
 
 		this.materialMap.uniforms.projection.value = this.renderTargetProjection.texture;
@@ -106,24 +125,39 @@ class MapRenderer {
 		this.resizeCallback();
     };
 
-	mouseDown(e) {
+	getMousePosition(e) {
+		const raycaster = new THREE.Raycaster();
+		const mouse = new THREE.Vector2();
 		const rect = this.dom.getBoundingClientRect();
-		const x = (e.clientX - rect.left) / (rect.right - rect.left); //x position within the element.
-		const y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top); //y position within the element.
-		this.materialSelection.uniforms.position.value = new THREE.Vector2(x, y);
-		this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
-		this.materialSelection.uniforms.depressed.value = true;
-		this.selectionDirty = true;
+		mouse.x = (e.clientX - rect.left) / (rect.right - rect.left) * 2.0 - 1.0; //x position within the element.
+		mouse.y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top) * 2.0; //y position within the element.
+		raycaster.setFromCamera( mouse.clone(), this.camera );
+		const intersects = raycaster.intersectObject(this.planeMap);
+
+		if (intersects.length > 0) {
+			return intersects[0].uv;
+		}
+		return null;
+	}
+
+	mouseDown(e) {
+		const mouse = this.getMousePosition(e);
+		if (mouse) {
+			this.materialSelection.uniforms.position.value = mouse;
+			this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
+			this.selectionDirty = true;
+			this.materialSelection.uniforms.depressed.value = true;
+		}
 	}
 
 	mouseMove(e) {
 		if (this.materialSelection.uniforms.depressed.value) {
-			const rect = this.dom.getBoundingClientRect();
-			const x = (e.clientX - rect.left) / (rect.right - rect.left); //x position within the element.
-			const y = 1.0 - (e.clientY - rect.top) / (rect.bottom - rect.top); //y position within the element.
-			this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
-			this.materialSelection.uniforms.position.value = new THREE.Vector2(x, y);
-			this.selectionDirty = true;
+			const mouse = this.getMousePosition(e);
+			if (mouse) {
+				this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
+				this.materialSelection.uniforms.position.value = mouse;
+				this.selectionDirty = true;
+			}
 		}
 	}
 
@@ -139,7 +173,7 @@ class MapRenderer {
 		this.renderer.setViewport(0, 0, 1024, 1024);
 		this.renderer.setScissorTest(false);
 		this.renderer.setRenderTarget(this.renderTargetProjection);
-		this.renderer.render(this.sceneProjection, this.camera);
+		this.renderer.render(this.sceneProjection, this.cameraProjection);
 		this.projectionDirty = false;
 	}
 
@@ -147,11 +181,14 @@ class MapRenderer {
 		this.renderer.setViewport(0, 0, 1024, 1024);
 		this.renderer.setScissorTest(false);
 		this.renderer.setRenderTarget(this.renderTargetSelection);
-		this.renderer.render(this.sceneSelection, this.camera);
+		this.renderer.render(this.sceneSelection, this.cameraSelection);
 		if (this.materialSelection.uniforms.clear.value) {
 			this.materialSelection.uniforms.clear.value = false;
 		}
-		console.log("HEY")
+
+		if (this.materialSelection.uniforms.doRestore.value) {
+			this.materialSelection.uniforms.doRestore.value = false;
+		}
 		this.onSelectionUpdated();
 		this.selectionDirty = false;
 		//$(document).trigger("selectionUpdated");
@@ -170,6 +207,8 @@ class MapRenderer {
 		this.renderer.setScissorTest(true);
 
 		this.renderer.setRenderTarget(null);
+		let gl = this.renderer.getContext();
+		gl.clear(gl.COLOR_BUFFER_BIT);
 		this.renderer.render(this.sceneMap, this.camera);
 	}
 
@@ -206,6 +245,18 @@ class MapRenderer {
 		this.projectionDirty = true;
 	};
 
+	setPenSize(value) {
+		this.materialSelection.uniforms.penSize.value = value;
+	};
+
+	setPenMode(mode) {
+		if (mode === "draw") {
+			this.materialSelection.uniforms.penMode.value = 0;
+		} else {
+			this.materialSelection.uniforms.penMode.value = 1;
+		}
+	}
+
 	getSeletionTexture() {
 		return this.renderTargetSelection.texture;
 	};
@@ -219,6 +270,12 @@ class MapRenderer {
 		this.renderer.readRenderTargetPixels(this.renderTargetSelection, 0, 0, pixels.width, pixels.height, pixels.buffer);
 		return pixels;
 	};
+
+	setSelectionFromTexture(texture) {
+		this.materialSelection.uniforms.doRestore.value = true;
+		this.materialSelection.uniforms.restore.value = texture;
+		this.selectionDirty = true;
+	}
 
 	getProjectionPixels() {
 		var pixels = {
@@ -240,17 +297,13 @@ class MapRenderer {
 	}
 
 	resizeCallback() {
-		/*this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		
-		const rect = this.dom.getBoundingClientRect();
-			
-		const width  = rect.right - rect.left;
-		const height = rect.bottom - rect.top;
-		const left   = rect.left;
-		const bottom = window.innerHeight - rect.bottom;
+		const aspect = this.dom.clientWidth/this.dom.clientHeight
 		
-		this.camera.aspect = width/height;
-		this.camera.updateProjectionMatrix();*/
+		this.camera.left = -aspect;
+		this.camera.right = aspect;
+		this.camera.updateProjectionMatrix();
 	};
 }
 
