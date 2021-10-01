@@ -141,32 +141,40 @@ class MapRenderer {
 	}
 
 	mouseDown(e) {
-		const mouse = this.getMousePosition(e);
-		if (mouse) {
-			this.materialSelection.uniforms.position.value = mouse;
-			this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
-			this.selectionDirty = true;
-			this.materialSelection.uniforms.depressed.value = true;
+		if (e.button === 0) {
+			const mouse = this.getMousePosition(e);
+			if (mouse) {
+				this.materialSelection.uniforms.position.value = mouse;
+				this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
+				this.selectionDirty = true;
+				this.materialSelection.uniforms.depressed.value = true;
+			}
 		}
 	}
 
 	mouseMove(e) {
-		if (this.materialSelection.uniforms.depressed.value) {
-			const mouse = this.getMousePosition(e);
-			if (mouse) {
-				this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
-				this.materialSelection.uniforms.position.value = mouse;
-				this.selectionDirty = true;
+		if (e.button === 0) {
+			if (this.materialSelection.uniforms.depressed.value) {
+				const mouse = this.getMousePosition(e);
+				if (mouse) {
+					this.materialSelection.uniforms.lastPosition.value = this.materialSelection.uniforms.position.value;
+					this.materialSelection.uniforms.position.value = mouse;
+					this.selectionDirty = true;
+				}
 			}
 		}
 	}
 
 	mouseOut(e) {
-		this.materialSelection.uniforms.depressed.value = false;
+		if (e.button === 0) {
+			this.materialSelection.uniforms.depressed.value = false;
+		}
 	}
 
 	mouseUp(e) {
-		this.materialSelection.uniforms.depressed.value = false;
+		if (e.button === 0) {
+			this.materialSelection.uniforms.depressed.value = false;
+		}
 	}
 
 	renderProjection() {
