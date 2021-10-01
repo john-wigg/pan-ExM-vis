@@ -11,15 +11,14 @@ const MapTools = props => {
     const [editText, setEditText] = useState("");
 
     useEffect(() => {
-        if (labelRef.current) {
-        labelRef.current.value = editText;
+        if (labelRef.current && edit) {
+            labelRef.current.focus();
+            labelRef.current.value = editText;
         }
-    }, [editText])
+    }, [edit, editText, labelRef])
 
     const handleEdit = () => {
-        if (!edit) {
-            setEditText(props.label);
-        }
+        setEditText(props.label);
         setEdit(!edit);
     }
 
