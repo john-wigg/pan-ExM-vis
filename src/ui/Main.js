@@ -4,7 +4,9 @@ import Import from './Import'
 import Toolbar from './Toolbar';
 import Sidebar from './Sidebar';
 import Overlay from './Overlay';
-import Views from './Views'
+import Views from './Views';
+
+import Button from 'react-bootstrap/Button';
 
 class Main extends Component {
 	constructor(props) {
@@ -135,13 +137,13 @@ class Main extends Component {
 	}
 
 	render() {
-		console.log("HEY")
 		let volumeSize = [
 			this.state.sdf.dims[0] * this.state.voxelSize[0],
 			this.state.sdf.dims[1] * this.state.voxelSize[1],
 			this.state.sdf.dims[2] * this.state.voxelSize[2]
 		]
 
+		const display = this.state.ready ? {} : {display: "none"};
 		return (
 			<>
 				<Import
@@ -149,6 +151,19 @@ class Main extends Component {
 					onAbort={this.handleAbortImport}
 					onComplete={this.handleCompleteImport}
 				/>
+				<div className="background"></div>
+				{!this.state.ready && 
+				    <div className="d-flex justify-content-center align-items-center" style={{position: "absolute", height: "100%", width: "100%"}}>
+						<Button
+							variant="primary"
+							size="lg"
+							onClick={this.handleShowImport}
+						>
+							<i className="bi-plus-square"></i>&nbsp;&nbsp;Import Data
+						</Button>
+					</div>
+				}
+				<div style={display}>
 				<Overlay>
 					<Toolbar
 						fullscreen={this.state.fullscreen}
@@ -186,6 +201,7 @@ class Main extends Component {
 					useLod={this.state.useLod}
 					isovalue={this.state.isovalue}
 				/>
+				</div>
 			</>
 		)
 	}
