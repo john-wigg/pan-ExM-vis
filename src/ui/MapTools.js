@@ -49,7 +49,6 @@ const MapTools = props => {
     const reloadStore = () => {
         let list = {};
         storeData.iterate(function(value, key, iterationNumber) {
-            console.log(key)
             list[key] = value.name;
         }).then(() => {setUuids(list)})
     }

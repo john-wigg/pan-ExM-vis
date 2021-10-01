@@ -9,6 +9,7 @@ const MapTools = props => {
 
     const [edit, setEdit] = useState(false);
     const [editText, setEditText] = useState("");
+    const [blockBlur, setBlockBlur] = useState(false); // Block onBlur when mouse is over the label button.
 
     useEffect(() => {
         if (labelRef.current && edit) {
@@ -17,9 +18,19 @@ const MapTools = props => {
         }
     }, [edit, editText, labelRef])
 
-    const handleEdit = () => {
+    const handleBlur = () => {
+        if (!blockBlur) {
+            handleEdit(false);
+        }
+    }
+
+    const handleClickEdit = () => {
+        handleEdit(!edit);
+    }
+
+    const handleEdit = (doEdit) => {;
+        setEdit(doEdit);
         setEditText(props.label);
-        setEdit(!edit);
     }
 
     const handleChange = (e) => {
@@ -28,7 +39,7 @@ const MapTools = props => {
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter') {
-            handleEdit();
+            handleEdit(false);
         }
     }
 
@@ -38,7 +49,7 @@ const MapTools = props => {
             style={{marginLeft: "auto"}}
             onKeyPress={handleKeyPress}
             onChange={handleChange}
-            onBlur={handleEdit}
+            onBlur={handleBlur}
             ref={labelRef}
         />
     } else {
@@ -52,7 +63,9 @@ const MapTools = props => {
         <InputGroup>
         {buttonOrForm}
         <Button
-            onClick={handleEdit}
+            onClick={handleClickEdit}
+            onMouseEnter={() => setBlockBlur(true)} // This is needed to re-enable the button
+            onMouseLeave={() => setBlockBlur(false)}
         ><i className="bi-tag-fill"></i></Button>
         <Button
             onClick={props.onExport}
