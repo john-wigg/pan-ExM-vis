@@ -41,11 +41,32 @@
     transition: clip-path .6s ease /* Same easing as bootstrap's progress bar. */
 }
 
+.stack-base {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+}
+
+.stack {
+    grid-area: 1 / 1 / 1 / 1;
+}
+
+.no-pointer-events {
+    pointer-events: none;
+}
+
+.pointer-events {
+    pointer-events: all !important;
+}
+
+.fill-screen {
+    width: 100%;
+}
+
 .overlay {
     position: absolute;
     padding: 2em;
     box-sizing:border-box;
-    width: 100%;
     pointer-events: none;
 }
 
@@ -92,3 +113,18 @@
     position: absolute;
     background: white;
 }
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    display: none;
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #0d6efd;
+  }

@@ -8,14 +8,18 @@ const MapTools = props => {
     const labelRef = useRef();
 
     const [edit, setEdit] = useState(false);
+    const [editText, setEditText] = useState("");
 
     useEffect(() => {
-        if (edit === true) {
-            labelRef.current.value = props.label;
+        if (labelRef.current) {
+        labelRef.current.value = editText;
         }
-    }, [edit])
+    }, [editText])
 
     const handleEdit = () => {
+        if (!edit) {
+            setEditText(props.label);
+        }
         setEdit(!edit);
     }
 
@@ -32,13 +36,15 @@ const MapTools = props => {
     let buttonOrForm;
     if (edit === true) {
         buttonOrForm = <FormControl
+            style={{marginLeft: "auto"}}
             onKeyPress={handleKeyPress}
             onChange={handleChange}
             onBlur={handleEdit}
             ref={labelRef}
         />
     } else {
-        buttonOrForm = <Button 
+        buttonOrForm = <Button
+                            style={{marginLeft: "auto"}}
                             onClick={props.onClick}
                         >{props.label}</Button>
     }
