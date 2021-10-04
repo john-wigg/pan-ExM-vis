@@ -1,21 +1,21 @@
 {
   "files": {
     "main.css": "./static/css/main.992b0185.chunk.css",
-    "main.js": "./static/js/main.f588d2c7.chunk.js",
-    "main.js.map": "./static/js/main.f588d2c7.chunk.js.map",
+    "main.js": "./static/js/main.d526df9c.chunk.js",
+    "main.js.map": "./static/js/main.d526df9c.chunk.js.map",
     "runtime-main.js": "./static/js/runtime-main.65469e2c.js",
     "runtime-main.js.map": "./static/js/runtime-main.65469e2c.js.map",
     "static/css/2.ad974a9d.chunk.css": "./static/css/2.ad974a9d.chunk.css",
-    "static/js/2.30d08037.chunk.js": "./static/js/2.30d08037.chunk.js",
-    "static/js/2.30d08037.chunk.js.map": "./static/js/2.30d08037.chunk.js.map",
+    "static/js/2.b860628e.chunk.js": "./static/js/2.b860628e.chunk.js",
+    "static/js/2.b860628e.chunk.js.map": "./static/js/2.b860628e.chunk.js.map",
     "static/js/3.7a84f458.chunk.js": "./static/js/3.7a84f458.chunk.js",
     "static/js/3.7a84f458.chunk.js.map": "./static/js/3.7a84f458.chunk.js.map",
     "index.html": "./index.html",
     "static/css/2.ad974a9d.chunk.css.map": "./static/css/2.ad974a9d.chunk.css.map",
     "static/css/main.992b0185.chunk.css.map": "./static/css/main.992b0185.chunk.css.map",
-    "static/js/2.30d08037.chunk.js.LICENSE.txt": "./static/js/2.30d08037.chunk.js.LICENSE.txt",
-    "static/js/histogram-worker.ff80e009.chunk.worker.js": "./static/js/histogram-worker.ff80e009.chunk.worker.js",
-    "static/js/histogram-worker.ff80e009.chunk.worker.js.map": "./static/js/histogram-worker.ff80e009.chunk.worker.js.map",
+    "static/js/2.b860628e.chunk.js.LICENSE.txt": "./static/js/2.b860628e.chunk.js.LICENSE.txt",
+    "static/js/histogram-worker.7d139cf6.chunk.worker.js": "./static/js/histogram-worker.7d139cf6.chunk.worker.js",
+    "static/js/histogram-worker.7d139cf6.chunk.worker.js.map": "./static/js/histogram-worker.7d139cf6.chunk.worker.js.map",
     "static/js/sdf-worker.d17a835f.chunk.worker.js": "./static/js/sdf-worker.d17a835f.chunk.worker.js",
     "static/js/sdf-worker.d17a835f.chunk.worker.js.map": "./static/js/sdf-worker.d17a835f.chunk.worker.js.map",
     "static/js/tiff-worker.a6adfe81.chunk.worker.js": "./static/js/tiff-worker.a6adfe81.chunk.worker.js",
@@ -27,8 +27,8 @@
   "entrypoints": [
     "static/js/runtime-main.65469e2c.js",
     "static/css/2.ad974a9d.chunk.css",
-    "static/js/2.30d08037.chunk.js",
+    "static/js/2.b860628e.chunk.js",
     "static/css/main.992b0185.chunk.css",
-    "static/js/main.f588d2c7.chunk.js"
+    "static/js/main.d526df9c.chunk.js"
   ]
 }
