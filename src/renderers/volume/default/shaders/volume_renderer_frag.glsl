@@ -90,6 +90,12 @@ float sampleSdf(vec3 p) {
     return texture(sdf, p/volumeSize + 0.5).r * 255.0 / 10.0 - 5.0;;
 }
 
+float sampleProjection(vec3 p) {
+    vec2 uv = (p/volumeSize + 0.5).xy;
+    float r = texture(projection, uv, 2.0).g;
+    return r;
+}
+
 void calcNormalAndCurv(vec3 p, out vec3 normal, out float curv) {
     float h = 0.01; 
     vec2 k = h * vec2(1., 0.);
@@ -119,6 +125,7 @@ void main()
     // Render render isosurface
     vec4 surfaceColor = vec4(0.0f);
     vec4 proteinColor = vec4(0.0f);
+    vec4 selectionColor = vec4(0.0f);
     
     if (displayCompartments) {
         vec3 rayPos = vOrigin + boxDst.x * rayDir;
@@ -180,10 +187,19 @@ void main()
             vec3 color = colormap(density);
 
             vec3 uvw = rayPos / volumeSize + 0.5;
-            float distanceToMaximum = clamp(1.0 - abs(uvw.z - texture(projection, uvw.xy).g) / 0.025, 0.0, 1.0);
+            float distanceToMaximum = clamp(1.0 - abs(uvw.z - sampleProjection(rayPos)) / 0.025, 0.0, 1.0);
             float selectionMask = texture(selection, uvw.xy).r;
 
             float highlight = distanceToMaximum * selectionMask;
+
+            if (highlight > 0.5) {
+                vec3 normal;
+                float curv;
+                calcNormalAndCurv(rayPos, normal, curv);
+                float ldn = dot(normal, vec3(1.0, 0.0, 0.0));
+                selectionColor = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0), 0.5 + 0.5 * ldn);
+                break;
+            }
             color = mix(color, 3.0 * matlab_spring(density), highlight);
 
             proteinColor.rgb += density * (1.0 - proteinColor.a) * color;
@@ -195,7 +211,7 @@ void main()
 
         steps += 1.0;
 
-        if (proteinColor.a > 0.99f) break;
+        //if (proteinColor.a > 0.99f) break;
         if (dist + boxDst.x > depth) break;
     }
 
@@ -205,5 +221,8 @@ void main()
     } else {
         FragColor.rgb = mix(surfaceColor.rgb, proteinColor.rgb, proteinColor.a);
         FragColor.a = max(surfaceColor.a, proteinColor.a);
+
+        FragColor.rgb = mix(FragColor.rgb, selectionColor.rgb, selectionColor.a);
+        FragColor.a = max(FragColor.a, selectionColor.a);
     }
 }

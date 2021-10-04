@@ -15,10 +15,10 @@ async function computeLocalHistogram(sdfBuffer, proteinBuffer, dims, selectionPi
         var selection = selectionPixels.buffer[4 * idx_in_slice] / 255.0;
         if (selection < 0.5) continue;
         
-        var proj = projectionPixels.buffer[4 * idx_in_slice] / 255.0;
-        if (Math.abs((i / (dims[0]*dims[1]))/dims[2] - proj) > 0.05) continue;
+        //var proj = projectionPixels.buffer[4 * idx_in_slice] / 255.0;
+        //if (Math.abs((i / (dims[0]*dims[1]))/dims[2] - proj) > 0.05) continue;
 
-        hist[sdfBuffer[i]] += proteinBuffer[i];
+        hist[sdfBuffer[i]] += proteinBuffer[2*i];
         area[sdfBuffer[i]] += 1.0;
 
     }

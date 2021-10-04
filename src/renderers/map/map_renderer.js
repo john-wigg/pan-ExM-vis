@@ -44,7 +44,10 @@ class MapRenderer {
 				sdf: { value: null },
 				isovalue: { value: null }
 			},
-			transparent: true
+			transparent: true,
+			extensions: {
+				shaderTextureLOD: true // set to use shader texture LOD
+			}
 		});
 
 		this.materialSelection = new THREE.ShaderMaterial({
@@ -75,7 +78,11 @@ class MapRenderer {
 		});
 
 		this.renderTargetSelection = new THREE.WebGLRenderTarget(1024, 1024);
-		this.renderTargetProjection = new THREE.WebGLRenderTarget(1024, 1024);
+		this.renderTargetProjection = new THREE.WebGLRenderTarget(1024, 1024, {
+			magFilter:THREE.NearestFilter,
+            minFilter:THREE.LinearMipMapLinearFilter,
+            generateMipmaps:true
+		});
 
 		const aspect = dom.clientWidth/dom.clientHeight
 
@@ -187,6 +194,7 @@ class MapRenderer {
 		this.renderer.render(this.sceneProjection, this.cameraProjection);
 		this.onProjectionUpdated();
 		this.projectionDirty = false;
+		console.log(this.renderTargetProjection.texture.mipmaps)
 	}
 
 	renderSelection() {
