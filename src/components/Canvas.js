@@ -13,60 +13,60 @@ const Canvas = props => {
 
 	
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setDistanceFieldData(props.sdf.buffers, props.sdf.dims);
 		}
-	}, [props.sdf, props.ready])
+	}, [props.sdf, props.mainView, props.mapView, props.ready])
 	
 	
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setProteinData(props.protein.buffer, props.protein.dims);
 		}
-	}, [props.protein, props.ready])
+	}, [props.protein, props.mainView, props.mapView, props.ready])
 
 	
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setVolumeSize(props.volumeSize);
 		}
-	}, [props.volumeSize, props.ready])
+	}, [props.volumeSize, props.mainView, props.mapView, props.ready])
 
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setDisplayProtein(props.displayProtein);
 		}
-	}, [props.displayProtein, props.ready])
+	}, [props.displayProtein, props.mainView, props.mapView, props.ready])
 
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setDisplayCompartment(props.displaySegmentation);
 		}
-	}, [props.displaySegmentation, props.ready])
+	}, [props.displaySegmentation, props.mainView, props.mapView, props.ready])
 
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setCompartmentIndex(props.compartmentIndex);
 		}
-	}, [props.compartmentIndex, props.ready])
+	}, [props.compartmentIndex, props.mainView, props.mapView, props.ready])
 
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setDebugSamples(props.debugSamples);
 		}	
-	}, [props.debugSamples, props.ready])
+	}, [props.debugSamples, props.mainView, props.mapView, props.ready])
 
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setUseLod(props.useLod);
 		}
-	}, [props.useLod, props.ready])
+	}, [props.useLod, props.mainView, props.mapView, props.ready])
 
 	useEffect(() => {
-		if (props.ready) {
+		if (props.ready && props.mainView && props.mapView) {
 			Renderer.setIsovalue(props.isovalue);
 		}
-	}, [props.isovalue, props.ready])
+	}, [props.isovalue, props.mainView, props.mapView, props.ready])
 
 	return (
 		<canvas className="renderer" ref={canvasRef}/>

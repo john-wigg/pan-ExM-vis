@@ -5,6 +5,7 @@ import Toolbar from './Toolbar';
 import Sidebar from './Sidebar';
 import Overlay from './Overlay';
 import Views from './Views';
+import Canvas from './Canvas'
 
 import Button from 'react-bootstrap/Button';
 
@@ -29,7 +30,9 @@ class Main extends Component {
 			localHistogram: [],
 			// Debug variables
 			debugSamples: false,
-			useLod: true
+			useLod: true,
+			mainView: "",
+			mapView: ""
 		}
 		
 		this.handleShowImport = this.handleShowImport.bind(this);
@@ -43,6 +46,8 @@ class Main extends Component {
 		this.handleDebugSamples = this.handleDebugSamples.bind(this);
 		this.handleUseLod = this.handleUseLod.bind(this);
 		this.handleIsovalue = this.handleIsovalue.bind(this);
+		this.handleMainView = this.handleMainView.bind(this);
+		this.handleMapView = this.handleMapView.bind(this);
 	}
 
 	handleShowImport() {
@@ -55,6 +60,18 @@ class Main extends Component {
 		this.setState({
 			showImport: false
 		});
+	}
+
+	handleMapView(dom) {
+		this.setState({
+			mapView: dom
+		})
+	}
+
+	handleMainView(dom) {
+		this.setState({
+			mainView: dom
+		})
 	}
 
 	handleCompleteImport(sdfBuffers, proteinBuffers, bufferDims, voxelSize, hist, histLabels) {
@@ -143,15 +160,14 @@ class Main extends Component {
 			this.state.sdf.dims[2] * this.state.voxelSize[2]
 		]
 
-		const display = this.state.ready ? {} : {display: "none"};
 		return (
 			<>
+				<div className="background"></div>
 				<Import
 					show={this.state.showImport}
 					onAbort={this.handleAbortImport}
 					onComplete={this.handleCompleteImport}
 				/>
-				<div className="background"></div>
 				{!this.state.ready && 
 				    <div className="d-flex justify-content-center align-items-center" style={{position: "absolute", height: "100%", width: "100%"}}>
 						<Button
@@ -163,7 +179,22 @@ class Main extends Component {
 						</Button>
 					</div>
 				}
-				<div style={display}>
+				{ this.state.ready &&
+				<>
+				<Canvas
+					mainView={this.state.mainView}
+					mapView={this.state.mapView}
+					sdf={this.state.sdf}
+					protein={this.state.protein}
+					volumeSize={volumeSize}
+					displayProtein={this.state.displayProtein}
+					displaySegmentation={this.state.displaySegmentation}
+					compartmentIndex={this.state.compartmentIndex}
+					ready={this.state.ready}
+					debugSamples={this.state.debugSamples}
+					useLod={this.state.useLod}
+					isovalue={this.state.isovalue}
+				/>
 				<Overlay>
 					<Toolbar
 						fullscreen={this.state.fullscreen}
@@ -192,16 +223,17 @@ class Main extends Component {
 					displayProtein={this.state.displayProtein}
 					displaySegmentation={this.state.displaySegmentation}
 					compartmentIndex={this.state.compartmentIndex}
-					ready={this.state.ready}
-					onClickImport={this.handleShowImport}
-					localHistogram={this.state.localHistogram}
-					globalHistogram={this.state.globalHistogram}
+					localHistogram={Array.from(this.state.localHistogram)}
+					globalHistogram={Array.from(this.state.globalHistogram)}
 					labelsHistogram={this.state.labelsHistogram}
 					debugSamples={this.state.debugSamples}
 					useLod={this.state.useLod}
 					isovalue={this.state.isovalue}
+					onMainView={this.handleMainView}
+					onMapView={this.handleMapView}
 				/>
-				</div>
+				</>
+				}
 			</>
 		)
 	}
