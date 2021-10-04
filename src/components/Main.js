@@ -9,6 +9,8 @@ import Canvas from './Canvas'
 
 import Button from 'react-bootstrap/Button';
 
+import * as Comlink from 'comlink';
+
 class Main extends Component {
 	constructor(props) {
 		super(props);
@@ -32,7 +34,10 @@ class Main extends Component {
 			debugSamples: false,
 			useLod: true,
 			mainView: "",
-			mapView: ""
+			mapView: "",
+
+			projectionPixels: [],
+			selectionPixels: []
 		}
 		
 		this.handleShowImport = this.handleShowImport.bind(this);
@@ -48,6 +53,11 @@ class Main extends Component {
 		this.handleIsovalue = this.handleIsovalue.bind(this);
 		this.handleMainView = this.handleMainView.bind(this);
 		this.handleMapView = this.handleMapView.bind(this);
+		this.handleSelectionUpdated = this.handleSelectionUpdated.bind(this);
+		this.handleProjectionUpdated = this.handleProjectionUpdated.bind(this);
+		this.handleSelectionDone = this.handleSelectionDone.bind(this);
+
+		this.computeLocalHistogram = this.computeLocalHistogram.bind(this);
 	}
 
 	handleShowImport() {
@@ -153,6 +163,38 @@ class Main extends Component {
 		})
 	}
 
+	async computeLocalHistogram(selectionPixels, projectionPixels) {
+		if (selectionPixels.buffer && projectionPixels.buffer) {
+			const worker = new Worker('../workers/histogram-worker.js', {
+				name: 'histogram-worker',
+				type: 'module'
+			  });
+			const compute = Comlink.wrap(worker);
+			let hist = await compute(this.state.sdf.buffers[0], this.state.protein.buffer[0], this.state.sdf.dims, selectionPixels, projectionPixels);
+			worker.terminate();
+
+			this.setState({
+				localHistogram: hist
+			})
+		}
+	}
+
+	handleProjectionUpdated(projectionPixels) {
+		this.setState({
+			projectionPixels: projectionPixels
+		})
+	}
+
+	handleSelectionUpdated(selectionPixels) {
+		this.setState({
+			selectionPixels: selectionPixels
+		})
+	}
+
+	handleSelectionDone() {
+		this.computeLocalHistogram(this.state.selectionPixels, this.state.projectionPixels);
+	}
+
 	render() {
 		let volumeSize = [
 			this.state.sdf.dims[0] * this.state.voxelSize[0],
@@ -194,6 +236,9 @@ class Main extends Component {
 					debugSamples={this.state.debugSamples}
 					useLod={this.state.useLod}
 					isovalue={this.state.isovalue}
+					onSelectionUpdated={this.handleSelectionUpdated}
+					onProjectionUpdated={this.handleProjectionUpdated}
+					onSelectionDone={this.handleSelectionDone}
 				/>
 				<Overlay>
 					<Toolbar
@@ -217,18 +262,9 @@ class Main extends Component {
 					/>
 				</Overlay>
 				<Views
-					sdf={this.state.sdf}
-					protein={this.state.protein}
-					volumeSize={volumeSize}
-					displayProtein={this.state.displayProtein}
-					displaySegmentation={this.state.displaySegmentation}
-					compartmentIndex={this.state.compartmentIndex}
 					localHistogram={Array.from(this.state.localHistogram)}
 					globalHistogram={Array.from(this.state.globalHistogram)}
 					labelsHistogram={this.state.labelsHistogram}
-					debugSamples={this.state.debugSamples}
-					useLod={this.state.useLod}
-					isovalue={this.state.isovalue}
 					onMainView={this.handleMainView}
 					onMapView={this.handleMapView}
 				/>

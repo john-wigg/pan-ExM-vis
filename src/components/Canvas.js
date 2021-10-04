@@ -4,6 +4,18 @@ import * as Renderer from '../renderers/renderer.js'
 
 const Canvas = props => {
 	const canvasRef = useRef(null)
+
+	useEffect(() => {
+		Renderer.setOnSelectionUpdated(props.onSelectionUpdated);
+	}, [props.onSelectionUpdated])
+
+	useEffect(() => {
+		Renderer.setOnProjectionUpdated(props.onProjectionUpdated);
+	}, [props.onProjectionUpdated])
+
+	useEffect(() => {
+		Renderer.setOnSelectionDone(props.onSelectionDone);
+	}, [props.onSelectionDone])
 	
 	useEffect(() => {
 		if (props.ready && props.mainView && props.mapView) {

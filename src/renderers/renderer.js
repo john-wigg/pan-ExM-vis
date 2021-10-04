@@ -18,6 +18,10 @@ var volumeRenderer = null;
 var mapRenderer = null;
 // Configure coordinate system to use Z as up.
 
+var onSelectionUpdated = () => {};
+var onProjectionUpdated = () => {};
+var onSelectionDone = () => {};
+
 async function main(initCanvas, initMainView, initMapView) {
 	canvas = initCanvas;
 	mainView = initMainView;
@@ -26,6 +30,18 @@ async function main(initCanvas, initMainView, initMapView) {
 	renderer.autoClearColor = false;
 	await init();
 	animate();
+}
+
+function setOnSelectionUpdated(callback) {
+	onSelectionUpdated = callback;
+}
+
+function setOnProjectionUpdated(callback) {
+	onProjectionUpdated = callback;
+}
+
+function setOnSelectionDone(callback) {
+	onSelectionDone = callback;
 }
 
 function setVolumeSize(size) {
@@ -76,7 +92,7 @@ function setDistanceFieldData(arrays, dims) {
 
 async function init() {
 	volumeRenderer = new VolumeRendererDefault(renderer, mainView);
-	mapRenderer = new MapRenderer(renderer, mapView, handleSelectionUpdated);
+	mapRenderer = new MapRenderer(renderer, mapView, handleSelectionUpdated, handleProjectionUpdated, handleSelectionDone);
 
 	volumeRenderer.setSelectionTexture(mapRenderer.getSeletionTexture());
 	volumeRenderer.setProjectionTexture(mapRenderer.getProjectionTexture());
@@ -91,8 +107,18 @@ function animate() {
 	stats.update();
 }
 
+function handleSelectionDone() {
+	console.log("SELECTION DONE")
+	onSelectionDone();
+}
+
 function handleSelectionUpdated() {
 	volumeRenderer.selectionUpdated();
+	onSelectionUpdated(mapRenderer.getSelectionPixels());
+}
+
+function handleProjectionUpdated() {
+	onProjectionUpdated(mapRenderer.getProjectionPixels());
 }
 
 function setIsovalue(value) {
@@ -156,4 +182,4 @@ function setPenSize(value) {
 	}
 }
 
-export { main, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};
+export { main, setOnSelectionUpdated, setOnProjectionUpdated, setOnSelectionDone, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};

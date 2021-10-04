@@ -28,11 +28,13 @@ class MapRenderer {
 	projectionDirty;
 	selectionDirty;
 
-	constructor(renderer, dom, onSelectionUpdated) {
+	constructor(renderer, dom, onSelectionUpdated, onProjectionUpdated, onSelectionDone) {
 		this.dom = dom;
 		this.renderer = renderer;
 
 		this.onSelectionUpdated = onSelectionUpdated;
+		this.onProjectionUpdated = onProjectionUpdated;
+		this.onSelectionDone = onSelectionDone;
 
         this.materialProjection = new THREE.ShaderMaterial({
 			vertexShader: require('./shaders/mip_vert.glsl'),
@@ -174,6 +176,7 @@ class MapRenderer {
 	mouseUp(e) {
 		if (e.button === 0) {
 			this.materialSelection.uniforms.depressed.value = false;
+			this.onSelectionDone();
 		}
 	}
 
@@ -182,6 +185,7 @@ class MapRenderer {
 		this.renderer.setScissorTest(false);
 		this.renderer.setRenderTarget(this.renderTargetProjection);
 		this.renderer.render(this.sceneProjection, this.cameraProjection);
+		this.onProjectionUpdated();
 		this.projectionDirty = false;
 	}
 
@@ -190,16 +194,17 @@ class MapRenderer {
 		this.renderer.setScissorTest(false);
 		this.renderer.setRenderTarget(this.renderTargetSelection);
 		this.renderer.render(this.sceneSelection, this.cameraSelection);
+		this.onSelectionUpdated();
 		if (this.materialSelection.uniforms.clear.value) {
 			this.materialSelection.uniforms.clear.value = false;
+			this.onSelectionDone();
 		}
 
 		if (this.materialSelection.uniforms.doRestore.value) {
 			this.materialSelection.uniforms.doRestore.value = false;
+			this.onSelectionDone();
 		}
-		this.onSelectionUpdated();
 		this.selectionDirty = false;
-		//$(document).trigger("selectionUpdated");
 	}
 
 	renderMap() {
