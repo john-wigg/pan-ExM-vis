@@ -21,3 +21,11 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# emscripten/cmake/ninja builds
+CMakeFiles
+CMakeCache.txt
+*.cmake
+.ninja_deps
+.ninja_log
+*.ninja

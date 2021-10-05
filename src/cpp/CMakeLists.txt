@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.0)
+project(PanVisionVisCpp)
+
+set(CMAKE_CXX_FLAGS "-O3")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../workers)
+
+add_executable(sdf sdf.cpp)
+set_target_properties(sdf PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=Sdf -s ALLOW_MEMORY_GROWTH=1 --bind")
+
+add_executable(histogram histogram.cpp)
+set_target_properties(histogram PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=Histogram -s ALLOW_MEMORY_GROWTH=1 --bind")

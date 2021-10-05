@@ -1,33 +1,19 @@
 import * as Comlink from 'comlink';
+import histogramWasm from "./histogram.wasm";
+import Histogram from "./histogram.js";
 
 async function computeLocalHistogram(sdfBuffer, proteinBuffer, dims, selectionPixels, projectionPixels) {
-    // Compute local histogram.
-    let bitDepth = 8;
-    var hist = new Float32Array(2**bitDepth);
-    var area = new Float32Array(2**bitDepth);
+    const wasm = await fetch("../../" + histogramWasm);
+    const buffer = await wasm.arrayBuffer();
+    const Module = await Histogram({
+      wasmBinary: buffer
+    });
 
-    var idx_in_slice = -1;
-    const slice_size = selectionPixels.width*selectionPixels.height;
-    for (let i = 0; i < sdfBuffer.length; ++i) {
-        ++idx_in_slice;
-        if (idx_in_slice >= slice_size) idx_in_slice = 0;
-        
-        var selection = selectionPixels.buffer[4 * idx_in_slice] / 255.0;
-        if (selection < 0.5) continue;
-        
-        //var proj = projectionPixels.buffer[4 * idx_in_slice] / 255.0;
-        //if (Math.abs((i / (dims[0]*dims[1]))/dims[2] - proj) > 0.05) continue;
+    const result = Module.local_histogram(sdfBuffer, proteinBuffer, selectionPixels.buffer, dims[0], dims[1], dims[2]);
 
-        hist[sdfBuffer[i]] += proteinBuffer[2*i];
-        area[sdfBuffer[i]] += 1.0;
-
-    }
-
-    for (let i = 0; i < hist.length; ++i) {
-        hist[i] = hist[i]/area[i];
-    }
-
-    return hist;
+    // We need to copy the view that lives in emscripten to make it accessible.
+    const copy = result.slice();
+    return copy;
 }
 
 Comlink.expose(computeLocalHistogram);
