@@ -90,6 +90,16 @@ function setDistanceFieldData(arrays, dims) {
 	mapRenderer.setDistanceData(textures);
 }
 
+function setCurvatureData(buffer, dims) {
+	const tex = new THREE.DataTexture3D(buffer, dims[0], dims[1], dims[2]);
+	tex.format = THREE.RedFormat;
+	tex.minFilter = THREE.LinearFilter;
+	tex.magFilter = THREE.LinearFilter;
+	tex.unpackAlignment = 1;
+
+	volumeRenderer.setCurvatureData(tex);
+}
+
 async function init() {
 	volumeRenderer = new VolumeRendererDefault(renderer, mainView);
 	mapRenderer = new MapRenderer(renderer, mapView, handleSelectionUpdated, handleProjectionUpdated, handleSelectionDone);
@@ -108,7 +118,6 @@ function animate() {
 }
 
 function handleSelectionDone() {
-	console.log("SELECTION DONE")
 	onSelectionDone();
 }
 
@@ -182,4 +191,4 @@ function setPenSize(value) {
 	}
 }
 
-export { main, setOnSelectionUpdated, setOnProjectionUpdated, setOnSelectionDone, setDistanceFieldData, setProteinData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};
+export { main, setOnSelectionUpdated, setOnProjectionUpdated, setOnSelectionDone, setDistanceFieldData, setProteinData, setCurvatureData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};

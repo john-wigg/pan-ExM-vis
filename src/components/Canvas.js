@@ -37,6 +37,12 @@ const Canvas = props => {
 		}
 	}, [props.protein, props.mainView, props.mapView, props.ready])
 
+	useEffect(() => {
+		if (props.ready && props.mainView && props.mapView) {
+			Renderer.setCurvatureData(props.curvature.buffer, props.curvature.dims);
+		}
+	}, [props.curvature, props.mainView, props.mapView, props.ready])
+
 	
 	useEffect(() => {
 		if (props.ready && props.mainView && props.mapView) {

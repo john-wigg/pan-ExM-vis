@@ -10,3 +10,6 @@ set_target_properties(sdf PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=
 
 add_executable(histogram histogram.cpp)
 set_target_properties(histogram PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=Histogram -s ALLOW_MEMORY_GROWTH=1 --bind")
+
+add_executable(curv curv.cpp)
+set_target_properties(curv PROPERTIES LINK_FLAGS "-s MODULARIZE=1 -s EXPORT_NAME=Curv -s ALLOW_MEMORY_GROWTH=1 --bind")

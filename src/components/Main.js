@@ -22,6 +22,7 @@ class Main extends Component {
 			voxelSize: [0, 0, 0],
 			sdf: {buffers: [], dims: [0, 0, 0]},
 			protein: {buffer: [], dims: [0, 0, 0]},
+			curvature: {buffer: null, dims: [0, 0, 0]},
 			ready: false,
 			compartmentIndex: 0,
 			displaySegmentation: true,
@@ -84,10 +85,11 @@ class Main extends Component {
 		})
 	}
 
-	handleCompleteImport(sdfBuffers, proteinBuffers, bufferDims, voxelSize, hist, histLabels) {
+	handleCompleteImport(sdfBuffers, proteinBuffers, curvBuffer, bufferDims, voxelSize, hist, histLabels) {
 		this.setState({
 			sdf: {buffers: sdfBuffers, dims: bufferDims},
 			protein: {buffer: proteinBuffers, dims: bufferDims},
+			curvature: {buffer: curvBuffer, dims: bufferDims},
 			voxelSize: voxelSize,
 			showImport: false,
 			ready: true,
@@ -228,6 +230,7 @@ class Main extends Component {
 					mapView={this.state.mapView}
 					sdf={this.state.sdf}
 					protein={this.state.protein}
+					curvature={this.state.curvature}
 					volumeSize={volumeSize}
 					displayProtein={this.state.displayProtein}
 					displaySegmentation={this.state.displaySegmentation}

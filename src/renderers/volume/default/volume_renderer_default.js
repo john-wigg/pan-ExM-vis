@@ -64,6 +64,7 @@ class VolumeRendererDefault extends VolumeRenderer {
 				volumeSize: { value: null },
 				texDepth: { value: null },
 				sdf: { value: null },
+				curvature: { value: null },
 				isovalue: { value: null },
 				displayProtein: { value: false },
 				displayCompartments: { value: false },
@@ -191,12 +192,19 @@ class VolumeRendererDefault extends VolumeRenderer {
 		
 		this.volumeDirty = true;
 	};
-
+	
 	setDistanceData(textures, dims) {
 		this.sdfTextures = textures;
 		this.materialMarchVolume.uniforms.sdf.value = this.sdfTextures[0];
 		this.volumeDirty = true;
 	};
+
+	setCurvatureData(texture) {
+		console.log(texture);
+		this.curvatureTexture = texture;
+		this.materialMarchVolume.uniforms.curvature.value = this.curvatureTexture;
+		this.volumeDirty = true;
+	}
 
 	setIsovalue(value) {
 		this.materialMarchVolume.uniforms.isovalue.value = value;

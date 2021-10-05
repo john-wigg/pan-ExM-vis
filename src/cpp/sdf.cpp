@@ -9,7 +9,6 @@ using namespace emscripten;
 
 val sdf(const val input, unsigned char target, int width, int height, int depth, float vx, float vy, float vz, val onProgress);
 
-
 #define IDX2(i, j, w) ((i)+(j)*(w))
 #define IDX3(i, j, k, w, h) ((i)+(j)*(w)+(k)*(w)*(h))
 

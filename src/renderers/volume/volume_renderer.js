@@ -11,6 +11,8 @@ class VolumeRenderer {
 
 	setDistanceData(textures) { };
 
+	setCurvatureData(texture) { };
+
 	setIsovalue(value) { };
 
 	setCompartmentIndex(value) { };

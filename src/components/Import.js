@@ -18,9 +18,11 @@ class Import extends Component {
             proteinProgress: 0,
             segmentationProgress: 0,
             sdfProgress: 0,
+            curvProgress: 0,
             proteinError: "",
             segmentationError: "",
             sdfError: "",
+            curvError: "",
             step: "dialog",
             preImportError: ""
         }
@@ -68,6 +70,18 @@ class Import extends Component {
     onSdfError(error) {
         this.setState({
             sdfError: error
+        })
+    }
+
+    onCurvProgress(progress) {
+        this.setState({
+            curvProgress: progress
+        })
+    }
+    
+    onCurvError(error) {
+        this.setState({
+            curvError: error
         })
     }
 
@@ -143,6 +157,16 @@ class Import extends Component {
         }
         this.onSdfProgress(100);
 
+        const worker = new Worker('../workers/curv-worker.js', {
+            name: 'curv-worker',
+            type: 'module'
+        });
+        const curvature = Comlink.wrap(worker);
+        const onProgress = (p) => {
+            this.onCurvProgress(p * 100)
+        }
+        let curvBuffer = await curvature(sdfBuffers[0], [tiffProtein.width, tiffProtein.height, tiffProtein.depth], voxelSize, Comlink.proxy(onProgress));
+
         // Compute pyramid.
         let pyramid = [];
         let w = tiffProtein.width;
@@ -210,7 +234,7 @@ class Import extends Component {
             step: "dialog"
         });
 
-        this.props.onComplete(sdfBuffers, pyramid, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
+        this.props.onComplete(sdfBuffers, pyramid, curvBuffer, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
                               [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)],
                               hist, histLabels);
     }
@@ -233,9 +257,11 @@ class Import extends Component {
                     proteinProgress={this.state.proteinProgress}
                     segmentationProgress={this.state.segmentationProgress}
                     sdfProgress={this.state.sdfProgress}
+                    curvProgress={this.state.curvProgress}
                     proteinError={this.state.proteinError}
                     segmentationError={this.state.segmentationError}
                     sdfError={this.state.sdfError}
+                    curvError={this.state.curvError}
                 />
             </>
         )

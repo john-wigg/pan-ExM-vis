@@ -5,19 +5,6 @@ import Modal from 'react-bootstrap/Modal';
 import LabeledProgressBar from './LabeledProgressBar';
 
 class ImportProgress extends Component {
-	constructor(props) {
-		super(props);
-		// TODO: Add all data here as state.
-		this.state = {
-			proteinProgress: 0,
-			segmentationProgress: 0,
-			sdfProgress: 0,
-			proteinError: "",
-			segmentationError: "",
-			sdfError: ""
-		}
-	}
-
 	componentDidMount() {
 
 	}
@@ -47,6 +34,11 @@ class ImportProgress extends Component {
 						progress={this.props.sdfProgress}
 						error={this.props.sdfError}
 						label="Compute Distance Fields..."
+					/>
+					<LabeledProgressBar 
+						progress={this.props.curvProgress}
+						error={this.props.curvError}
+						label="Compute Mean Curvature..."
 					/>
 				</div>
 			</Modal.Body>

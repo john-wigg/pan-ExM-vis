@@ -16,6 +16,8 @@ uniform sampler3D volume9;
 
 uniform sampler3D sdf;
 
+uniform sampler3D curvature;
+
 uniform sampler2D texDepth;
 
 uniform sampler2D selection;
@@ -90,6 +92,10 @@ float sampleSdf(vec3 p) {
     return texture(sdf, p/volumeSize + 0.5).r * 255.0 / 10.0 - 5.0;;
 }
 
+float sampleCurvature(vec3 p) {
+    return 0.010*texture(curvature, p/volumeSize + 0.5).r;
+}
+
 float sampleProjection(vec3 p) {
     vec2 uv = (p/volumeSize + 0.5).xy;
     float r = texture(projection, uv, 2.0).g;
@@ -97,17 +103,19 @@ float sampleProjection(vec3 p) {
 }
 
 void calcNormalAndCurv(vec3 p, out vec3 normal, out float curv) {
+    // Calculates the normal as well as the *mean* curvature at point p.
     float h = 0.01; 
     vec2 k = h * vec2(1., 0.);
 
     float t1 = sampleSdf(p + volumeSize*k.xyy); float t2 = sampleSdf(p - volumeSize*k.xyy);
     float t3 = sampleSdf(p + volumeSize*k.yxy); float t4 = sampleSdf(p - volumeSize*k.yxy);
     float t5 = sampleSdf(p + volumeSize*k.yxx); float t6 = sampleSdf(p - volumeSize*k.yxx);
+    float t = sampleSdf(p);
 
-    curv = (t1+t2+t3+t4+t5+t6-6.0*sampleSdf(p))/(h*h);
+    curv = (t1+t2+t3+t4+t5+t6-6.0*t)/(h*h); // mean curvature is just the Jacobian of the SDF
+    //curv = (abs(t1+t2-t)+abs(t3+t4-t)+abs(t5+t6-t))/(h*h);
     normal = normalize(k.xyy * (t1-t2) + k.yxy * (t3-t4) + k.yyx * (t5-t6));
 }
-
 
 void main()
 {
@@ -139,8 +147,9 @@ void main()
                 float curv;
                 vec3 normal;
                 calcNormalAndCurv(rayPos, normal, curv);
+                curv = sampleCurvature(rayPos) * 100.0;
                 float ldn = dot(normal, vec3(1.0, 0.0, 0.0));
-                surfaceColor = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(colormap(abs(0.00001*curv)), 1.0), 0.5 + 0.5 * ldn);
+                surfaceColor = mix(vec4(0.5*colormap(abs(curv)), 1.0), vec4(colormap(abs(curv)), 1.0), 0.5 + 0.5 * ldn);
                 break;
             }
 
