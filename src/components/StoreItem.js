@@ -60,7 +60,9 @@ const MapTools = props => {
     }
 
     return(
-        <InputGroup>
+        <InputGroup
+            className="pointer-events"
+        >
         {buttonOrForm}
         <Button
             onClick={handleClickEdit}

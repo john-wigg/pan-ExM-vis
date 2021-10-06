@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react'
 import Plots from './Plots'
 import MapTools from './MapTools'
 
-const Views= props => {
+const Views = props => {
     const mainRef = useRef(null);
     const mapRef = useRef(null);
 
@@ -20,20 +20,22 @@ const Views= props => {
         <div className="views d-flex flex-col">
             <div className="flex-fill d-flex flex-row">
                 <div className="flex-fill stack-base">
-                    <div className="stack" ref={mainRef}></div>
+                    <div className="stack" ref={mapRef}></div>
+                    <MapTools />
                 </div>
                 <div className="v-divider"></div>
                 <div className="flex-fill d-flex flex-column">
                     <div className="flex-fill stack-base">
-                        <div className="stack"ref={mapRef}></div>
-                        <MapTools />
+                        <div className="stack"ref={mainRef}></div>
                     </div>
                     <div className="h-divider"></div>
-                    <div className="flex-fill">
+                    <div className="flex-fill stack-base">
                         <Plots
                             localHistogram={props.localHistogram}
                             globalHistogram={props.globalHistogram}
                             labelsHistogram={props.labelsHistogram}
+                            globalCurvHistogram={props.globalCurvHistogram}
+                            labelsCurvHistogram={props.labelsCurvHistogram}
                         />
                     </div>
                 </div>

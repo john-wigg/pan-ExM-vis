@@ -46,9 +46,9 @@ val curvature(const val sdf, int width, int height, int depth, float vsx, float 
                 float t6 = sample_sdf(sdf_data, width, height, depth, x    , y    , z - h, vsx, vsy, vsz, min_sdf, max_sdf);
                 float t  = sample_sdf(sdf_data, width, height, depth, x    , y    , z    , vsx, vsy, vsz, min_sdf, max_sdf);
                 
-                float c = fabs((t1+t2+t3+t4+t5+t6-6.0*t)/(h*h));
-
-                curvature_data[index3] = (unsigned char)(c * 255.0); // mean curvature is just the Jacobian of the SDF
+                float c = (t1+t2+t3+t4+t5+t6-6.0*t)/(h*h);
+                
+                curvature_data[index3] = (unsigned char)(fmin(fmax(0.0, 0.2*c + 0.5), 1.0) * 255.0); // mean curvature is just the Jacobian of the SDF
             }
         }
         onProgress((float)k / depth);

@@ -229,6 +229,26 @@ class Import extends Component {
         for (let i = 0; i < 256; ++i) {
             histLabels.push(i / 10.0 - 5.0);
         }
+
+        // Compute global curvature histogram.
+        //const bitDepth = 8;
+        let curvHist = new Float32Array(2**bitDepth);
+        let curvArea = new Float32Array(2**bitDepth);
+    
+        for (let i = 0; i < curvBuffer.length; ++i) {
+            curvHist[curvBuffer[i]] += tiffProtein.pixels[i];
+            curvArea[curvBuffer[i]] += 1.0;
+    
+        }
+    
+        for (let i = 0; i < hist.length; ++i) {
+            curvHist[i] = curvHist[i]/curvArea[i];
+        }
+
+        let curvHistLabels = [];
+        for (let i = 0; i < 256; ++i) {
+            curvHistLabels.push((i / 255.0 - 0.5) * 5.0);
+        }
     
         this.setState({
             step: "dialog"
@@ -236,7 +256,7 @@ class Import extends Component {
 
         this.props.onComplete(sdfBuffers, pyramid, curvBuffer, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
                               [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)],
-                              hist, histLabels);
+                              hist, histLabels, curvHist, curvHistLabels);
     }
 
     handleClose() {

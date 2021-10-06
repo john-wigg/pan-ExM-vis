@@ -140,7 +140,7 @@ const MapTools = props => {
 
     return(
         <div className="stack no-pointer-events" style={{position: "relative"}}>
-            <div className="overlay d-flex flex-column-reverse pointer-events" style={{overflowY: "overlay", height: "80%", right: 0, bottom: 0}}>
+            <div className="overlay d-flex flex-column-reverse" style={{overflowY: "overlay", height: "80%", right: 0, bottom: 0}}>
                 <div className="align-self-end d-grid gap-2">
                 {storeList}
                 </div>

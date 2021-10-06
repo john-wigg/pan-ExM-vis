@@ -10,8 +10,12 @@ class Toolbar extends Component {
 		if (this.props.fullscreen) fullscreenIcon = "bi-fullscreen-exit";
 		else fullscreenIcon = "bi-arrows-fullscreen";
 		return (
-			<ButtonToolbar className="justify-content-between">
-			<ButtonGroup>
+			<ButtonToolbar
+				style={{marginLeft: "auto"}}
+			>
+			<ButtonGroup
+				className="me-2"
+			>
 				<Button
 					onClick={this.props.onToggleSidebar}
 				><i className="bi-tools"></i></Button>
@@ -19,7 +23,9 @@ class Toolbar extends Component {
 					onClick={this.props.onImportData}
 				>Import Data</Button>
 			</ButtonGroup>
-			<ButtonGroup>
+			<ButtonGroup
+				className="me-2"
+			>
 				<Button
 					onClick={this.props.onToggleFullscreen}
 				><i className={fullscreenIcon}></i></Button>

@@ -31,6 +31,9 @@ class Main extends Component {
 			globalHistogram: [],
 			labelsHistogram: [],
 			localHistogram: [],
+			// Curvature histograms
+			glovalCurvHistogram: [],
+			labelsCurvHistogram: [],
 			// Debug variables
 			debugSamples: false,
 			useLod: true,
@@ -85,7 +88,7 @@ class Main extends Component {
 		})
 	}
 
-	handleCompleteImport(sdfBuffers, proteinBuffers, curvBuffer, bufferDims, voxelSize, hist, histLabels) {
+	handleCompleteImport(sdfBuffers, proteinBuffers, curvBuffer, bufferDims, voxelSize, hist, histLabels, curvHist, curvHistLabels) {
 		this.setState({
 			sdf: {buffers: sdfBuffers, dims: bufferDims},
 			protein: {buffer: proteinBuffers, dims: bufferDims},
@@ -95,6 +98,8 @@ class Main extends Component {
 			ready: true,
 			globalHistogram: hist,
 			labelsHistogram: histLabels,
+			globalCurvHistogram: curvHist,
+			labelsCurvHistogram: curvHistLabels
 		})
 	}
 
@@ -268,6 +273,8 @@ class Main extends Component {
 					localHistogram={Array.from(this.state.localHistogram)}
 					globalHistogram={Array.from(this.state.globalHistogram)}
 					labelsHistogram={this.state.labelsHistogram}
+					globalCurvHistogram={Array.from(this.state.globalCurvHistogram)}
+					labelsCurvHistogram={this.state.labelsCurvHistogram}
 					onMainView={this.handleMainView}
 					onMapView={this.handleMapView}
 				/>

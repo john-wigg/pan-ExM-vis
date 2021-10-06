@@ -50,7 +50,10 @@ const Sidebar = props => {
     else if (props.selection === 0) dropdownText = "All Compartments";
     else dropdownText = "Compartment " + props.selection;
     return (
-        <Row md={3}>
+        <Row
+            md={3}
+            className="justify-content-end"
+        >
             <Col>
                 <Collapse in={props.open}>
                     <Card>
