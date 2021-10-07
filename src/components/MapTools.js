@@ -114,7 +114,6 @@ const MapTools = props => {
 
     const handleExportStore = (uuid) => {
         storeData.getItem(uuid).then((item) => {
-            console.log(item.data);
             let png = UPNG.encode([item.data.buffer], item.width, item.height, 0)
             let blob = new Blob([png], {type: "image/png"});
             let url = URL.createObjectURL(blob); 

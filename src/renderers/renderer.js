@@ -18,7 +18,6 @@ var volumeRenderer = null;
 var mapRenderer = null;
 // Configure coordinate system to use Z as up.
 
-var onSelectionUpdated = () => {};
 var onProjectionUpdated = () => {};
 var onSelectionDone = () => {};
 
@@ -30,10 +29,6 @@ async function main(initCanvas, initMainView, initMapView) {
 	renderer.autoClearColor = false;
 	await init();
 	animate();
-}
-
-function setOnSelectionUpdated(callback) {
-	onSelectionUpdated = callback;
 }
 
 function setOnProjectionUpdated(callback) {
@@ -118,12 +113,11 @@ function animate() {
 }
 
 function handleSelectionDone() {
-	onSelectionDone();
+	onSelectionDone(mapRenderer.getSelectionPixels());
 }
 
 function handleSelectionUpdated() {
 	volumeRenderer.selectionUpdated();
-	onSelectionUpdated(mapRenderer.getSelectionPixels());
 }
 
 function handleProjectionUpdated() {
@@ -191,4 +185,4 @@ function setPenSize(value) {
 	}
 }
 
-export { main, setOnSelectionUpdated, setOnProjectionUpdated, setOnSelectionDone, setDistanceFieldData, setProteinData, setCurvatureData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};
+export { main, setOnProjectionUpdated, setOnSelectionDone, setDistanceFieldData, setProteinData, setCurvatureData, setIsovalue, setDisplayProtein, setDisplayCompartment, setCompartmentIndex, setVolumeSize, deleteSelection, setSkeleton, setMapSelectionPixels, getMapSelectionPixels, getMapProjectionPixels, setDebugSamples, setUseLod, setPenMode, setPenSize};

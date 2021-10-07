@@ -28,13 +28,10 @@ class Main extends Component {
 			displaySegmentation: true,
 			displayProtein: true,
 			isovalue: 0,
-			globalHistogram: [],
-			labelsHistogram: [],
-			localHistogram: [],
-			// Curvature histograms
-			glovalCurvHistogram: [],
-			labelsCurvHistogram: [],
-			// Debug variables
+			heatmap: [],
+			heatarea: [],
+			localHeatmap: [],
+			localHeatarea: [],
 			debugSamples: false,
 			useLod: true,
 			mainView: "",
@@ -57,7 +54,6 @@ class Main extends Component {
 		this.handleIsovalue = this.handleIsovalue.bind(this);
 		this.handleMainView = this.handleMainView.bind(this);
 		this.handleMapView = this.handleMapView.bind(this);
-		this.handleSelectionUpdated = this.handleSelectionUpdated.bind(this);
 		this.handleProjectionUpdated = this.handleProjectionUpdated.bind(this);
 		this.handleSelectionDone = this.handleSelectionDone.bind(this);
 
@@ -88,7 +84,7 @@ class Main extends Component {
 		})
 	}
 
-	handleCompleteImport(sdfBuffers, proteinBuffers, curvBuffer, bufferDims, voxelSize, hist, histLabels, curvHist, curvHistLabels) {
+	handleCompleteImport(sdfBuffers, proteinBuffers, curvBuffer, bufferDims, voxelSize, heatmap, heatarea) {
 		this.setState({
 			sdf: {buffers: sdfBuffers, dims: bufferDims},
 			protein: {buffer: proteinBuffers, dims: bufferDims},
@@ -96,10 +92,8 @@ class Main extends Component {
 			voxelSize: voxelSize,
 			showImport: false,
 			ready: true,
-			globalHistogram: hist,
-			labelsHistogram: histLabels,
-			globalCurvHistogram: curvHist,
-			labelsCurvHistogram: curvHistLabels
+			heatmap: heatmap,
+			heatarea: heatarea
 		})
 	}
 
@@ -172,16 +166,25 @@ class Main extends Component {
 
 	async computeLocalHistogram(selectionPixels, projectionPixels) {
 		if (selectionPixels.buffer && projectionPixels.buffer) {
-			const worker = new Worker('../workers/histogram-worker.js', {
-				name: 'histogram-worker',
+			const worker = new Worker('../workers/local-heatmap-worker.js', {
+				name: 'local-heatmap-worker',
 				type: 'module'
 			  });
 			const compute = Comlink.wrap(worker);
-			let hist = await compute(this.state.sdf.buffers[0], this.state.protein.buffer[0], this.state.sdf.dims, selectionPixels, projectionPixels);
+			let res = await compute(this.state.sdf.buffers[0], this.state.curvature.buffer, this.state.protein.buffer[0], this.state.sdf.dims, selectionPixels, projectionPixels);
 			worker.terminate();
 
+			const countFlat = Array.from(res.slice(0, 256*256));
+			const count = [];
+			while(countFlat.length) count.push(countFlat.splice(0, 256));
+
+			const areaFlat = Array.from(res.slice(256*256));
+			const area = [];
+			while(areaFlat.length) area.push(areaFlat.splice(0, 256));
+			
 			this.setState({
-				localHistogram: hist
+				localHeatmap: count,
+				localHeatarea: area
 			})
 		}
 	}
@@ -192,14 +195,11 @@ class Main extends Component {
 		})
 	}
 
-	handleSelectionUpdated(selectionPixels) {
+	handleSelectionDone(selectionPixels) {
 		this.setState({
 			selectionPixels: selectionPixels
 		})
-	}
-
-	handleSelectionDone() {
-		this.computeLocalHistogram(this.state.selectionPixels, this.state.projectionPixels);
+		this.computeLocalHistogram(selectionPixels, this.state.projectionPixels);
 	}
 
 	render() {
@@ -244,7 +244,6 @@ class Main extends Component {
 					debugSamples={this.state.debugSamples}
 					useLod={this.state.useLod}
 					isovalue={this.state.isovalue}
-					onSelectionUpdated={this.handleSelectionUpdated}
 					onProjectionUpdated={this.handleProjectionUpdated}
 					onSelectionDone={this.handleSelectionDone}
 				/>
@@ -270,11 +269,10 @@ class Main extends Component {
 					/>
 				</Overlay>
 				<Views
-					localHistogram={Array.from(this.state.localHistogram)}
-					globalHistogram={Array.from(this.state.globalHistogram)}
-					labelsHistogram={this.state.labelsHistogram}
-					globalCurvHistogram={Array.from(this.state.globalCurvHistogram)}
-					labelsCurvHistogram={this.state.labelsCurvHistogram}
+					heatmap={Array.from(this.state.heatmap)}
+					heatarea={Array.from(this.state.heatarea)}
+					localHeatmap={Array.from(this.state.localHeatmap)}
+					localHeatarea={Array.from(this.state.localHeatarea)}
 					onMainView={this.handleMainView}
 					onMapView={this.handleMapView}
 				/>

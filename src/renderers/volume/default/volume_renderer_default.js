@@ -200,7 +200,6 @@ class VolumeRendererDefault extends VolumeRenderer {
 	};
 
 	setCurvatureData(texture) {
-		console.log(texture);
 		this.curvatureTexture = texture;
 		this.materialMarchVolume.uniforms.curvature.value = this.curvatureTexture;
 		this.volumeDirty = true;

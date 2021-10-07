@@ -149,7 +149,7 @@ vec2 sampleProtein(vec3 p, int lod) {
 }
 
 float sampleSdf(vec3 p) {
-    return texture(sdf, p/volumeSize + 0.5).r * 255.0 / 10.0 - 5.0;;
+    return texture(sdf, p/volumeSize + 0.5).r * 255.0 / 10.0 - 5.0;
 }
 
 float sampleCurvature(vec3 p) {

@@ -6,10 +6,6 @@ const Canvas = props => {
 	const canvasRef = useRef(null)
 
 	useEffect(() => {
-		Renderer.setOnSelectionUpdated(props.onSelectionUpdated);
-	}, [props.onSelectionUpdated])
-
-	useEffect(() => {
 		Renderer.setOnProjectionUpdated(props.onProjectionUpdated);
 	}, [props.onProjectionUpdated])
 

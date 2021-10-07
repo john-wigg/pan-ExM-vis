@@ -194,7 +194,6 @@ class MapRenderer {
 		this.renderer.render(this.sceneProjection, this.cameraProjection);
 		this.onProjectionUpdated();
 		this.projectionDirty = false;
-		console.log(this.renderTargetProjection.texture.mipmaps)
 	}
 
 	renderSelection() {
@@ -202,7 +201,7 @@ class MapRenderer {
 		this.renderer.setScissorTest(false);
 		this.renderer.setRenderTarget(this.renderTargetSelection);
 		this.renderer.render(this.sceneSelection, this.cameraSelection);
-		this.onSelectionUpdated();
+		//this.onSelectionUpdated();
 		if (this.materialSelection.uniforms.clear.value) {
 			this.materialSelection.uniforms.clear.value = false;
 			this.onSelectionDone();

@@ -31,11 +31,10 @@ const Views = props => {
                     <div className="h-divider"></div>
                     <div className="flex-fill stack-base">
                         <Plots
-                            localHistogram={props.localHistogram}
-                            globalHistogram={props.globalHistogram}
-                            labelsHistogram={props.labelsHistogram}
-                            globalCurvHistogram={props.globalCurvHistogram}
-                            labelsCurvHistogram={props.labelsCurvHistogram}
+                            heatmap={props.heatmap}
+                            heatarea={props.heatarea}
+                            localHeatmap={props.localHeatmap}
+                            localHeatarea={props.localHeatarea}
                         />
                     </div>
                 </div>

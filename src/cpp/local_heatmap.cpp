@@ -7,19 +7,20 @@
 
 using namespace emscripten;
 
-val local_histogram(const val sdf, const val protein, const val selection, int width, int height, int depth);
+val local_heatmap(const val sdf, const val curv, const val protein, const val selection, int width, int height, int depth);
 
 
 #define IDX2(i, j, w) ((i)+(j)*(w))
 #define IDX3(i, j, k, w, h) ((i)+(j)*(w)+(k)*(w)*(h))
 
-val local_histogram(const val sdf, const val protein, const val selection, int width, int height, int depth) {
+val local_heatmap(const val sdf, const val curv, const val protein, const val selection, int width, int height, int depth) {
     std::vector<unsigned char> sdf_data = convertJSArrayToNumberVector<unsigned char>(sdf);
+    std::vector<unsigned char> curv_data = convertJSArrayToNumberVector<unsigned char>(curv);
     std::vector<unsigned char> protein_data = convertJSArrayToNumberVector<unsigned char>(protein);
     std::vector<unsigned char> selection_data = convertJSArrayToNumberVector<unsigned char>(selection);
 
-    std::vector<float> hist(256);
-    std::vector<float> area(256);
+    std::vector<float> count(256*256);
+    std::vector<float> area(256*256);
 
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
@@ -30,20 +31,19 @@ val local_histogram(const val sdf, const val protein, const val selection, int w
                 unsigned char selection_val = selection_data[4 * index2];
                 if (selection_val < 128) continue;
 
-                hist[sdf_data[index3]] += protein_data[2*index3];
-                area[sdf_data[index3]] += 1.0;
+                int indexHM = IDX2(sdf_data[index3], curv_data[index3], 256);
+
+                count[indexHM] += protein_data[2*index3];
+                area[indexHM] += 1.0;
             }
         }
     }
 
-    for (int i = 0; i < 256; ++i) {
-        if (area[i] == 0.0) hist[i] = 0.0;
-        else hist[i] = hist[i] / area[i];
-    }
+    count.insert( count.end(), area.begin(), area.end() );
 
-    return val{ typed_memory_view(hist.size(), hist.data()) };
+    return val{  typed_memory_view(count.size(), count.data()) };
 }
 
 EMSCRIPTEN_BINDINGS(module) {
-    function("local_histogram", &local_histogram);
+    function("local_heatmap", &local_heatmap);
 }

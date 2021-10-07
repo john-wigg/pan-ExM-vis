@@ -212,51 +212,21 @@ class Import extends Component {
 
         // Compute global histogram.
         const bitDepth = 8;
-        let hist = new Float32Array(2**bitDepth);
-        let area = new Float32Array(2**bitDepth);
-    
+
+        const counts = Array.from(Array(2**bitDepth).fill(0), () => new Array(2**bitDepth).fill(0));
+        const area = Array.from(Array(2**bitDepth).fill(0), () => new Array(2**bitDepth).fill(0));
+
         for (let i = 0; i < sdfBuffers[0].length; ++i) {
-            hist[sdfBuffers[0][i]] += tiffProtein.pixels[i];
-            area[sdfBuffers[0][i]] += 1.0;
-    
-        }
-    
-        for (let i = 0; i < hist.length; ++i) {
-            hist[i] = hist[i]/area[i];
+            counts[curvBuffer[i]][sdfBuffers[0][i]] += tiffProtein.pixels[i];
+            area[curvBuffer[i]][sdfBuffers[0][i]] += 1.0;
         }
 
-        let histLabels = [];
-        for (let i = 0; i < 256; ++i) {
-            histLabels.push(i / 10.0 - 5.0);
-        }
-
-        // Compute global curvature histogram.
-        //const bitDepth = 8;
-        let curvHist = new Float32Array(2**bitDepth);
-        let curvArea = new Float32Array(2**bitDepth);
-    
-        for (let i = 0; i < curvBuffer.length; ++i) {
-            curvHist[curvBuffer[i]] += tiffProtein.pixels[i];
-            curvArea[curvBuffer[i]] += 1.0;
-    
-        }
-    
-        for (let i = 0; i < hist.length; ++i) {
-            curvHist[i] = curvHist[i]/curvArea[i];
-        }
-
-        let curvHistLabels = [];
-        for (let i = 0; i < 256; ++i) {
-            curvHistLabels.push((i / 255.0 - 0.5) * 5.0);
-        }
-    
         this.setState({
             step: "dialog"
         });
 
         this.props.onComplete(sdfBuffers, pyramid, curvBuffer, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
-                              [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)],
-                              hist, histLabels, curvHist, curvHistLabels);
+                              [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)], counts, area);
     }
 
     handleClose() {
