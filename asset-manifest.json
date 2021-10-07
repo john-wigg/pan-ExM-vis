@@ -1,23 +1,23 @@
 {
   "files": {
     "main.css": "./static/css/main.992b0185.chunk.css",
-    "main.js": "./static/js/main.a512a522.chunk.js",
-    "main.js.map": "./static/js/main.a512a522.chunk.js.map",
-    "runtime-main.js": "./static/js/runtime-main.54c6ef9d.js",
-    "runtime-main.js.map": "./static/js/runtime-main.54c6ef9d.js.map",
+    "main.js": "./static/js/main.cdc176d7.chunk.js",
+    "main.js.map": "./static/js/main.cdc176d7.chunk.js.map",
+    "runtime-main.js": "./static/js/runtime-main.222ccba8.js",
+    "runtime-main.js.map": "./static/js/runtime-main.222ccba8.js.map",
     "static/css/2.ad974a9d.chunk.css": "./static/css/2.ad974a9d.chunk.css",
-    "static/js/2.d8a66dea.chunk.js": "./static/js/2.d8a66dea.chunk.js",
-    "static/js/2.d8a66dea.chunk.js.map": "./static/js/2.d8a66dea.chunk.js.map",
-    "static/js/3.c7fbf131.chunk.js": "./static/js/3.c7fbf131.chunk.js",
-    "static/js/3.c7fbf131.chunk.js.map": "./static/js/3.c7fbf131.chunk.js.map",
+    "static/js/2.a54ae39f.chunk.js": "./static/js/2.a54ae39f.chunk.js",
+    "static/js/2.a54ae39f.chunk.js.map": "./static/js/2.a54ae39f.chunk.js.map",
+    "static/js/3.4708ed17.chunk.js": "./static/js/3.4708ed17.chunk.js",
+    "static/js/3.4708ed17.chunk.js.map": "./static/js/3.4708ed17.chunk.js.map",
     "index.html": "./index.html",
     "static/css/2.ad974a9d.chunk.css.map": "./static/css/2.ad974a9d.chunk.css.map",
     "static/css/main.992b0185.chunk.css.map": "./static/css/main.992b0185.chunk.css.map",
-    "static/js/2.d8a66dea.chunk.js.LICENSE.txt": "./static/js/2.d8a66dea.chunk.js.LICENSE.txt",
+    "static/js/2.a54ae39f.chunk.js.LICENSE.txt": "./static/js/2.a54ae39f.chunk.js.LICENSE.txt",
     "static/js/curv-worker.07e7e826.chunk.worker.js": "./static/js/curv-worker.07e7e826.chunk.worker.js",
     "static/js/curv-worker.07e7e826.chunk.worker.js.map": "./static/js/curv-worker.07e7e826.chunk.worker.js.map",
-    "static/js/histogram-worker.65619c02.chunk.worker.js": "./static/js/histogram-worker.65619c02.chunk.worker.js",
-    "static/js/histogram-worker.65619c02.chunk.worker.js.map": "./static/js/histogram-worker.65619c02.chunk.worker.js.map",
+    "static/js/local-heatmap-worker.72d231f1.chunk.worker.js": "./static/js/local-heatmap-worker.72d231f1.chunk.worker.js",
+    "static/js/local-heatmap-worker.72d231f1.chunk.worker.js.map": "./static/js/local-heatmap-worker.72d231f1.chunk.worker.js.map",
     "static/js/sdf-worker.6c045d76.chunk.worker.js": "./static/js/sdf-worker.6c045d76.chunk.worker.js",
     "static/js/sdf-worker.6c045d76.chunk.worker.js.map": "./static/js/sdf-worker.6c045d76.chunk.worker.js.map",
     "static/js/tiff-worker.a6adfe81.chunk.worker.js": "./static/js/tiff-worker.a6adfe81.chunk.worker.js",
@@ -25,14 +25,14 @@
     "static/media/bootstrap-icons.css": "./static/media/bootstrap-icons.dfd0ea12.woff2",
     "static/media/all.css": "./static/media/fa-solid-900.eeccf4f6.woff",
     "static/wasm/curv.03dec97f.wasm": "./static/wasm/curv.03dec97f.wasm",
-    "static/wasm/histogram.9916a8b5.wasm": "./static/wasm/histogram.9916a8b5.wasm",
+    "static/wasm/local_heatmap.a0120504.wasm": "./static/wasm/local_heatmap.a0120504.wasm",
     "static/wasm/sdf.1ba6065a.wasm": "./static/wasm/sdf.1ba6065a.wasm"
   },
   "entrypoints": [
-    "static/js/runtime-main.54c6ef9d.js",
+    "static/js/runtime-main.222ccba8.js",
     "static/css/2.ad974a9d.chunk.css",
-    "static/js/2.d8a66dea.chunk.js",
+    "static/js/2.a54ae39f.chunk.js",
     "static/css/main.992b0185.chunk.css",
-    "static/js/main.a512a522.chunk.js"
+    "static/js/main.cdc176d7.chunk.js"
   ]
 }
