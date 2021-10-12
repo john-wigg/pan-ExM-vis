@@ -29,3 +29,6 @@ CMakeCache.txt
 .ninja_deps
 .ninja_log
 *.ninja
+
+# VS Code
+.vscode
