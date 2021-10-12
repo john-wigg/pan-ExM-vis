@@ -107,14 +107,16 @@ const Plots = props => {
         }
         
         const local = new Array(256);
-        for (let i = 0; i < 256; ++i) {
-            let area = 0.0;
-            let count = 0.0;
-            for (let j = 0; j < 256; ++j) {
-                count += props.localHeatmap[j][i];
-                area += props.localHeatarea[j][i];
+        if (props.localHeatmap.length !== 0) {
+            for (let i = 0; i < 256; ++i) {
+                let area = 0.0;
+                let count = 0.0;
+                for (let j = 0; j < 256; ++j) {
+                    count += props.localHeatmap[j][i];
+                    area += props.localHeatarea[j][i];
+                }
+                local[i] = count/area;
             }
-            local[i] = count/area;
         }
 
         const x = new Array(props.heatmap.length);
@@ -166,14 +168,16 @@ const Plots = props => {
         }
         
         const local = new Array(256);
-        for (let i = 0; i < 256; ++i) {
-            let area = 0.0;
-            let count = 0.0;
-            for (let j = 0; j < 256; ++j) {
-                count += props.localHeatmap[i][j];
-                area += props.localHeatarea[i][j];
+        if (props.localHeatmap.length !== 0) {
+            for (let i = 0; i < 256; ++i) {
+                let area = 0.0;
+                let count = 0.0;
+                for (let j = 0; j < 256; ++j) {
+                    count += props.localHeatmap[i][j];
+                    area += props.localHeatarea[i][j];
+                }
+                local[i] = count/area;
             }
-            local[i] = count/area;
         }
 
         const x = new Array(props.heatmap.length);
