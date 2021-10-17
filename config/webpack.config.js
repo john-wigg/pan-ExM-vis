@@ -686,15 +686,14 @@ module.exports = function (webpackEnv) {
       // Generate a service worker script that will precache, and keep up to date,
       // the HTML & assets that are part of the webpack build.
       isEnvProduction &&
-        fs.existsSync(swSrc) &&
-        new WorkboxWebpackPlugin.InjectManifest({
-          swSrc,
+        new WorkboxWebpackPlugin.GenerateSW({
+          // these options encourage the ServiceWorkers to get in there fast
+          // and not allow any straggling "old" SWs to hang around
+          clientsClaim: true,
+          skipWaiting: true,
           dontCacheBustURLsMatching: /\.[0-9a-f]{8}\./,
           exclude: [/\.map$/, /asset-manifest\.json$/, /LICENSE/],
-          // Bump up the default maximum size (2mb) that's precached,
-          // to make lazy-loading failure scenarios less likely.
-          // See https://github.com/cra-template/pwa/issues/13#issuecomment-722667270
-          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024
         }),
       // TypeScript type checking
       useTypeScript &&
