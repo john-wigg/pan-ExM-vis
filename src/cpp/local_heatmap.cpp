@@ -26,9 +26,9 @@ val local_heatmap(const val sdf, const val curv, const val protein, const val se
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
                 int index3 = IDX3(i, j, k, width, height);
-                int index2 = IDX2(i, j, width);
+                int indexS = IDX2(i * 1024 / width, j * 1024 / height, 1024);
 
-                unsigned char selection_val = selection_data[4 * index2];
+                unsigned char selection_val = selection_data[4 * indexS];
                 if (selection_val < 128) continue;
 
                 int indexHM = IDX2(sdf_data[index3], curv_data[index3], 256);

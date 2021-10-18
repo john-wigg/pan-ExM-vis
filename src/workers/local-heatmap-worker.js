@@ -9,10 +9,18 @@ async function computeLocalHeatmap(sdfBuffer, curvBuffer, proteinBuffer, dims, s
       wasmBinary: buffer
     });
 
+    console.log("HELLOOOO");
+    console.log(sdfBuffer);
+    console.log(curvBuffer);
+    console.log(proteinBuffer);
+    console.log(dims);
+
     const result = Module.local_heatmap(sdfBuffer, curvBuffer, proteinBuffer, selectionPixels.buffer, dims[0], dims[1], dims[2]);
 
     // We need to copy the view that lives in emscripten to make it accessible.
     const copy = result.slice();
+
+    console.log(copy);
 
     return copy;
 }

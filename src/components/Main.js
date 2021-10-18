@@ -176,7 +176,7 @@ class Main extends Component {
 				type: 'module'
 			  });
 			const compute = Comlink.wrap(worker);
-			let res = await compute(this.state.sdf[0].data, this.state.curvature.data, this.state.protein[0], /* TODO */this.state.volumeDims, selectionPixels, projectionPixels);
+			let res = await compute(this.state.sdf[0].data, this.state.curvature.data, this.state.protein[0], this.state.volumeDims, selectionPixels, projectionPixels);
 			worker.terminate();
 
 			const countFlat = Array.from(res.slice(0, 256*256));
@@ -201,6 +201,7 @@ class Main extends Component {
 	}
 
 	handleSelectionDone(selectionPixels) {
+		console.log("SELECTION DONE")
 		this.setState({
 			selectionPixels: selectionPixels
 		})
