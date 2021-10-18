@@ -249,6 +249,8 @@ SdfResult sdf(const val input, unsigned char target, int width, int height, int 
         }
     }
 
+    max_dist = fmin(max_dist, -3.0 * min_dist);
+
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
@@ -257,7 +259,7 @@ SdfResult sdf(const val input, unsigned char target, int width, int height, int 
                 float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z);
                 if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
                 if (target == 0) dist *= -1.0; // Use target = 0 to create distance map for all compartments.
-                float normalized_dist = (dist - min_dist) / (max_dist - min_dist);
+                float normalized_dist = fmin((dist - min_dist) / (max_dist - min_dist), 1.0);
                 sdf[IDX3(i, j, k, width, height)] = (unsigned char)(normalized_dist * 255.0);
             } 
         }
