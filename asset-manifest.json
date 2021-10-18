@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "./static/css/main.992b0185.chunk.css",
-    "main.js": "./static/js/main.41cecbfd.chunk.js",
-    "main.js.map": "./static/js/main.41cecbfd.chunk.js.map",
+    "main.js": "./static/js/main.f5c8c8d5.chunk.js",
+    "main.js.map": "./static/js/main.f5c8c8d5.chunk.js.map",
     "runtime-main.js": "./static/js/runtime-main.222ccba8.js",
     "runtime-main.js.map": "./static/js/runtime-main.222ccba8.js.map",
     "static/css/2.ad974a9d.chunk.css": "./static/css/2.ad974a9d.chunk.css",
@@ -18,8 +18,8 @@
     "static/js/2.3a18a88c.chunk.js.LICENSE.txt": "./static/js/2.3a18a88c.chunk.js.LICENSE.txt",
     "static/js/curv-worker.e7456c99.chunk.worker.js": "./static/js/curv-worker.e7456c99.chunk.worker.js",
     "static/js/curv-worker.e7456c99.chunk.worker.js.map": "./static/js/curv-worker.e7456c99.chunk.worker.js.map",
-    "static/js/local-heatmap-worker.572d4980.chunk.worker.js": "./static/js/local-heatmap-worker.572d4980.chunk.worker.js",
-    "static/js/local-heatmap-worker.572d4980.chunk.worker.js.map": "./static/js/local-heatmap-worker.572d4980.chunk.worker.js.map",
+    "static/js/local-heatmap-worker.03975bfe.chunk.worker.js": "./static/js/local-heatmap-worker.03975bfe.chunk.worker.js",
+    "static/js/local-heatmap-worker.03975bfe.chunk.worker.js.map": "./static/js/local-heatmap-worker.03975bfe.chunk.worker.js.map",
     "static/js/sdf-worker.09bb8ea9.chunk.worker.js": "./static/js/sdf-worker.09bb8ea9.chunk.worker.js",
     "static/js/sdf-worker.09bb8ea9.chunk.worker.js.map": "./static/js/sdf-worker.09bb8ea9.chunk.worker.js.map",
     "static/js/tiff-worker.a6adfe81.chunk.worker.js": "./static/js/tiff-worker.a6adfe81.chunk.worker.js",
@@ -27,7 +27,7 @@
     "static/media/bootstrap-icons.css": "./static/media/bootstrap-icons.dfd0ea12.woff2",
     "static/media/all.css": "./static/media/fa-solid-900.eeccf4f6.woff",
     "static/wasm/curv.610939d7.wasm": "./static/wasm/curv.610939d7.wasm",
-    "static/wasm/local_heatmap.f4d76a4c.wasm": "./static/wasm/local_heatmap.f4d76a4c.wasm",
+    "static/wasm/local_heatmap.bc2a0eb7.wasm": "./static/wasm/local_heatmap.bc2a0eb7.wasm",
     "static/wasm/sdf.7b452668.wasm": "./static/wasm/sdf.7b452668.wasm",
     "workbox-d9851aed.js": "./workbox-d9851aed.js",
     "workbox-d9851aed.js.map": "./workbox-d9851aed.js.map"
@@ -37,6 +37,6 @@
     "static/css/2.ad974a9d.chunk.css",
     "static/js/2.3a18a88c.chunk.js",
     "static/css/main.992b0185.chunk.css",
-    "static/js/main.41cecbfd.chunk.js"
+    "static/js/main.f5c8c8d5.chunk.js"
   ]
 }
