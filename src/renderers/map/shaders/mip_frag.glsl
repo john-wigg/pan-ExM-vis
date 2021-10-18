@@ -2,6 +2,7 @@ varying vec2 vUv;
 
 uniform highp sampler3D volume;
 uniform highp sampler3D sdf;
+uniform vec2 sdfRange;
 uniform float isovalue;
 
 void main() {
@@ -13,7 +14,7 @@ void main() {
     float maxPos = 0.0;
     for (float i = 0.0; i < float(col); i += 1.0) {
         uv.z = i / float(col);
-        float sdfVal = texture(sdf, uv).r * 255.0 / 10.0 - 5.0 - isovalue;
+        float sdfVal = texture(sdf, uv).r * (sdfRange.y - sdfRange.x) + sdfRange.x - isovalue;
         if (sdfVal <= 0.01) {
             float density = texture(volume, uv).r;
             if (density > maxDensity) {

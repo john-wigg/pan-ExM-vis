@@ -84,7 +84,7 @@ function setDistanceFieldData(arrays, dims) {
 		ranges.push([arrays[i].min, arrays[i].max])
 	}
 	volumeRenderer.setDistanceData(textures, ranges);
-	mapRenderer.setDistanceData(textures);
+	mapRenderer.setDistanceData(textures, ranges);
 }
 
 function setCurvatureData(curvature, dims) {

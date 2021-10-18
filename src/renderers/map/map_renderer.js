@@ -42,6 +42,7 @@ class MapRenderer {
 			uniforms: {
 				volume: { value: null },
 				sdf: { value: null },
+				sdfRange: { value: new THREE.Vector2(0, 0) },
 				isovalue: { value: null }
 			},
 			transparent: true,
@@ -249,9 +250,11 @@ class MapRenderer {
 		this.projectionDirty = true;
 	};
 
-	setDistanceData(textures) {
+	setDistanceData(textures, ranges) {
 		this.sdfTextures = textures;
+		this.sdfRanges = ranges;
 		this.materialProjection.uniforms.sdf.value = this.sdfTextures[0];
+		this.materialProjection.uniforms.sdfRange.value = new THREE.Vector3(this.sdfRanges[0][0], this.sdfRanges[0][1]);
 		this.projectionDirty = true;
 	};
 
@@ -262,6 +265,7 @@ class MapRenderer {
 
 	setCompartmentIndex(value) {
 		this.materialProjection.uniforms.sdf.value = this.sdfTextures[value];
+		this.materialProjection.uniforms.sdfRange.value = new THREE.Vector3(this.sdfRanges[value][0], this.sdfRanges[value][1]);
 		this.projectionDirty = true;
 	};
 
