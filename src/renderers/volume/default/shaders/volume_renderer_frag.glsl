@@ -259,20 +259,9 @@ void main()
             vec3 color = colormap(density);
 
             vec3 uvw = rayPos / volumeSize + 0.5;
-            float distanceToMaximum = clamp(1.0 - abs(uvw.z - sampleProjection(rayPos)) / 0.025, 0.0, 1.0);
             float selectionMask = texture(selection, uvw.xy).r;
 
-            float highlight = distanceToMaximum * selectionMask;
-
-            if (highlight > 0.5) {
-                vec3 normal;
-                float curv;
-                calcNormalAndCurv(rayPos, normal, curv);
-                float ldn = dot(normal, vec3(1.0, 0.0, 0.0));
-                selectionColor = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0), 0.5 + 0.5 * ldn);
-                break;
-            }
-            color = mix(color, 3.0 * matlab_spring(density), highlight);
+            color = mix(color, 3.0 * matlab_spring(density), selectionMask);
 
             proteinColor.rgb += density * (1.0 - proteinColor.a) * color;
             proteinColor.a += density * (1.0 - proteinColor.a);
