@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "./static/css/main.992b0185.chunk.css",
-    "main.js": "./static/js/main.65a2a5b9.chunk.js",
-    "main.js.map": "./static/js/main.65a2a5b9.chunk.js.map",
+    "main.js": "./static/js/main.fed38d6b.chunk.js",
+    "main.js.map": "./static/js/main.fed38d6b.chunk.js.map",
     "runtime-main.js": "./static/js/runtime-main.222ccba8.js",
     "runtime-main.js.map": "./static/js/runtime-main.222ccba8.js.map",
     "static/css/2.ad974a9d.chunk.css": "./static/css/2.ad974a9d.chunk.css",
-    "static/js/2.a54ae39f.chunk.js": "./static/js/2.a54ae39f.chunk.js",
-    "static/js/2.a54ae39f.chunk.js.map": "./static/js/2.a54ae39f.chunk.js.map",
+    "static/js/2.3a18a88c.chunk.js": "./static/js/2.3a18a88c.chunk.js",
+    "static/js/2.3a18a88c.chunk.js.map": "./static/js/2.3a18a88c.chunk.js.map",
     "static/js/3.4708ed17.chunk.js": "./static/js/3.4708ed17.chunk.js",
     "static/js/3.4708ed17.chunk.js.map": "./static/js/3.4708ed17.chunk.js.map",
     "index.html": "./index.html",
@@ -15,11 +15,11 @@
     "service-worker.js.map": "./service-worker.js.map",
     "static/css/2.ad974a9d.chunk.css.map": "./static/css/2.ad974a9d.chunk.css.map",
     "static/css/main.992b0185.chunk.css.map": "./static/css/main.992b0185.chunk.css.map",
-    "static/js/2.a54ae39f.chunk.js.LICENSE.txt": "./static/js/2.a54ae39f.chunk.js.LICENSE.txt",
+    "static/js/2.3a18a88c.chunk.js.LICENSE.txt": "./static/js/2.3a18a88c.chunk.js.LICENSE.txt",
     "static/js/curv-worker.e7456c99.chunk.worker.js": "./static/js/curv-worker.e7456c99.chunk.worker.js",
     "static/js/curv-worker.e7456c99.chunk.worker.js.map": "./static/js/curv-worker.e7456c99.chunk.worker.js.map",
-    "static/js/local-heatmap-worker.72d231f1.chunk.worker.js": "./static/js/local-heatmap-worker.72d231f1.chunk.worker.js",
-    "static/js/local-heatmap-worker.72d231f1.chunk.worker.js.map": "./static/js/local-heatmap-worker.72d231f1.chunk.worker.js.map",
+    "static/js/local-heatmap-worker.572d4980.chunk.worker.js": "./static/js/local-heatmap-worker.572d4980.chunk.worker.js",
+    "static/js/local-heatmap-worker.572d4980.chunk.worker.js.map": "./static/js/local-heatmap-worker.572d4980.chunk.worker.js.map",
     "static/js/sdf-worker.838d6f2a.chunk.worker.js": "./static/js/sdf-worker.838d6f2a.chunk.worker.js",
     "static/js/sdf-worker.838d6f2a.chunk.worker.js.map": "./static/js/sdf-worker.838d6f2a.chunk.worker.js.map",
     "static/js/tiff-worker.a6adfe81.chunk.worker.js": "./static/js/tiff-worker.a6adfe81.chunk.worker.js",
@@ -27,7 +27,7 @@
     "static/media/bootstrap-icons.css": "./static/media/bootstrap-icons.dfd0ea12.woff2",
     "static/media/all.css": "./static/media/fa-solid-900.eeccf4f6.woff",
     "static/wasm/curv.610939d7.wasm": "./static/wasm/curv.610939d7.wasm",
-    "static/wasm/local_heatmap.a0120504.wasm": "./static/wasm/local_heatmap.a0120504.wasm",
+    "static/wasm/local_heatmap.f4d76a4c.wasm": "./static/wasm/local_heatmap.f4d76a4c.wasm",
     "static/wasm/sdf.35743928.wasm": "./static/wasm/sdf.35743928.wasm",
     "workbox-d9851aed.js": "./workbox-d9851aed.js",
     "workbox-d9851aed.js.map": "./workbox-d9851aed.js.map"
@@ -35,8 +35,8 @@
   "entrypoints": [
     "static/js/runtime-main.222ccba8.js",
     "static/css/2.ad974a9d.chunk.css",
-    "static/js/2.a54ae39f.chunk.js",
+    "static/js/2.3a18a88c.chunk.js",
     "static/css/main.992b0185.chunk.css",
-    "static/js/main.65a2a5b9.chunk.js"
+    "static/js/main.fed38d6b.chunk.js"
   ]
 }
