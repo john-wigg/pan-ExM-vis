@@ -12,8 +12,8 @@ async function sdf(tiff, voxelSize, target, onProgress) {
     const result = Module.sdf(tiff.pixels, target, tiff.width, tiff.height, tiff.depth, parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z), onProgress);
 
     // We need to copy the view that lives in emscripten to make it accessible.
-    const copy = result.slice();
-    return copy;
+    const copy = result.data.slice();
+    return {"data": copy, "min": result.min, "max": result.max};
 }
 
 Comlink.expose(sdf);

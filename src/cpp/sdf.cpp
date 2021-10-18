@@ -7,7 +7,9 @@
 
 using namespace emscripten;
 
-val sdf(const val input, unsigned char target, int width, int height, int depth, float vx, float vy, float vz, val onProgress);
+struct SdfResult;
+
+SdfResult sdf(const val input, unsigned char target, int width, int height, int depth, float vx, float vy, float vz, val onProgress);
 
 #define IDX2(i, j, w) ((i)+(j)*(w))
 #define IDX3(i, j, k, w, h) ((i)+(j)*(w)+(k)*(w)*(h))
@@ -19,6 +21,12 @@ typedef struct L_t {
     unsigned y:12;
     unsigned z:8;
 } L_t;
+
+struct SdfResult {
+    val data = val { 0 };
+    float min;
+    float max;
+};
 
 static float progress = 0.0;
 
@@ -210,7 +218,7 @@ void hullmarch(std::vector<unsigned char> &volume, std::vector<L_t> &L, int widt
     }
 }
 
-val sdf(const val input, unsigned char target, int width, int height, int depth, float vx, float vy, float vz, val onProgress) {
+SdfResult sdf(const val input, unsigned char target, int width, int height, int depth, float vx, float vy, float vz, val onProgress) {
     std::vector<unsigned char> volume = convertJSArrayToNumberVector<unsigned char>(input);
 
     float vx2 = vx*vx;
@@ -225,6 +233,22 @@ val sdf(const val input, unsigned char target, int width, int height, int depth,
 
     std::vector<unsigned char> sdf(width*height*depth);
 
+    // Two passes: first pass determines the min and max SDF values; the second pass writes the normalized values.
+    float min_dist = 999999.9;
+    float max_dist = -999999.9;
+    for (int k = 0; k < depth; ++k) {
+        for (int j = 0; j < height; ++j) {
+            for (int i = 0; i < width; ++i) {
+                L_t L0 = L[IDX3(i, j, k, width, height)];
+                float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z);
+                if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
+                if (target == 0) dist *= -1.0; // Use target = 0 to create distance map for all compartments.
+                min_dist = fmin(dist, min_dist);
+                max_dist = fmax(dist, max_dist);
+            }
+        }
+    }
+
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
             for (int i = 0; i < width; ++i) {
@@ -233,14 +257,25 @@ val sdf(const val input, unsigned char target, int width, int height, int depth,
                 float dist = sqrt(vx2*L0.x*L0.x+vy2*L0.y*L0.y+vz2*L0.z*L0.z);
                 if (volume[IDX3(i, j, k, width, height)] == target) dist *= -1.0;
                 if (target == 0) dist *= -1.0; // Use target = 0 to create distance map for all compartments.
-                sdf[IDX3(i, j, k, width, height)] = (unsigned char)fmax(fmin((dist + 5.0) * 10.0, 255.0), 0.0);
+                float normalized_dist = (dist - min_dist) / (max_dist - min_dist);
+                sdf[IDX3(i, j, k, width, height)] = (unsigned char)(normalized_dist * 255.0);
             } 
         }
     }
 
-    return val{ typed_memory_view(sdf.size(), sdf.data()) };
+    SdfResult res;
+    res.data = val{ typed_memory_view(sdf.size(), sdf.data()) };
+    res.min = min_dist;
+    res.max = max_dist;
+    return res;
 }
 
 EMSCRIPTEN_BINDINGS(module) {
+    value_object<SdfResult>("SdfResult")
+        .field("data", &SdfResult::data)
+        .field("min", &SdfResult::min)
+        .field("max", &SdfResult::max)
+        ;
+
     function("sdf", &sdf);
 }

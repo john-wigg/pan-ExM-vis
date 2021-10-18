@@ -6,8 +6,9 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 THREE.Object3D.DefaultUp = new THREE.Vector3(0,0,1);
 
 class VolumeRendererDefault extends VolumeRenderer {
-	volumeTexture
-	sdfTextures
+	volumeTexture;
+	sdfTextures;
+	sdfRanges;
 
 	dom;
 	renderer;
@@ -64,7 +65,9 @@ class VolumeRendererDefault extends VolumeRenderer {
 				volumeSize: { value: null },
 				texDepth: { value: null },
 				sdf: { value: null },
+				sdfRange: { value: new THREE.Vector2(0, 0) },
 				curvature: { value: null },
+				curvatureRange: { value: new THREE.Vector2(0, 0) },
 				isovalue: { value: null },
 				displayProtein: { value: false },
 				displayCompartments: { value: false },
@@ -193,15 +196,19 @@ class VolumeRendererDefault extends VolumeRenderer {
 		this.volumeDirty = true;
 	};
 	
-	setDistanceData(textures, dims) {
+	setDistanceData(textures, ranges, dims) {
 		this.sdfTextures = textures;
+		this.sdfRanges = ranges;
 		this.materialMarchVolume.uniforms.sdf.value = this.sdfTextures[0];
+		this.materialMarchVolume.uniforms.sdfRange.value = new THREE.Vector2(this.sdfRanges[0][0], this.sdfRanges[0][1])
 		this.volumeDirty = true;
 	};
 
-	setCurvatureData(texture) {
+	setCurvatureData(texture, range) {
 		this.curvatureTexture = texture;
+		this.curvatureRange = range;
 		this.materialMarchVolume.uniforms.curvature.value = this.curvatureTexture;
+		this.materialMarchVolume.uniforms.curvatureRange.value = new THREE.Vector2(this.curvatureRange[0], this.curvatureRange[1])
 		this.volumeDirty = true;
 	}
 
@@ -212,6 +219,7 @@ class VolumeRendererDefault extends VolumeRenderer {
 
 	setCompartmentIndex(value) {
 		this.materialMarchVolume.uniforms.sdf.value = this.sdfTextures[value];
+		this.materialMarchVolume.uniforms.sdfRange.value = new THREE.Vector2(this.sdfRanges[value][0], this.sdfRanges[value][1]);
 		this.volumeDirty = true;
 	};
 

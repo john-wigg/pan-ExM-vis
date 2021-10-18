@@ -20,9 +20,10 @@ class Main extends Component {
 			showSidebar: false,
 			showImport: false,
 			voxelSize: [0, 0, 0],
-			sdf: {buffers: [], dims: [0, 0, 0]},
-			protein: {buffer: [], dims: [0, 0, 0]},
-			curvature: {buffer: null, dims: [0, 0, 0]},
+			volumeDims: [0, 0, 0],
+			sdf: [],
+			protein: "",
+			curvature: "",
 			ready: false,
 			compartmentIndex: 0,
 			displaySegmentation: true,
@@ -30,6 +31,7 @@ class Main extends Component {
 			isovalue: 0,
 			heatmap: [],
 			heatarea: [],
+			heataxes: [[0, 0], [0, 0]],
 			localHeatmap: [],
 			localHeatarea: [],
 			debugSamples: false,
@@ -84,16 +86,18 @@ class Main extends Component {
 		})
 	}
 
-	handleCompleteImport(sdfBuffers, proteinBuffers, curvBuffer, bufferDims, voxelSize, heatmap, heatarea) {
+	handleCompleteImport(sdf, proteinBuffers, curv, bufferDims, voxelSize, heatmap, heatarea) {
 		this.setState({
-			sdf: {buffers: sdfBuffers, dims: bufferDims},
-			protein: {buffer: proteinBuffers, dims: bufferDims},
-			curvature: {buffer: curvBuffer, dims: bufferDims},
+			sdf: sdf,
+			protein: proteinBuffers,
+			volumeDims: bufferDims,
+			curvature: curv,
 			voxelSize: voxelSize,
 			showImport: false,
 			ready: true,
 			heatmap: heatmap,
-			heatarea: heatarea
+			heatarea: heatarea,
+			heataxes: [[sdf[0].min, sdf[0].max], [curv.min, curv.max]]
 		})
 	}
 
@@ -159,8 +163,9 @@ class Main extends Component {
 	}
 
 	handleIsovalue(value) {
+		let isovalue = value / 100.0 * (this.state.sdf[0].max - this.state.sdf[0].min) + this.state.sdf[0].min;
 		this.setState({
-			isovalue: value
+			isovalue: isovalue
 		})
 	}
 
@@ -171,7 +176,7 @@ class Main extends Component {
 				type: 'module'
 			  });
 			const compute = Comlink.wrap(worker);
-			let res = await compute(this.state.sdf.buffers[0], this.state.curvature.buffer, this.state.protein.buffer[0], this.state.sdf.dims, selectionPixels, projectionPixels);
+			let res = await compute(this.state.sdf[0].data, this.state.curvature.data, this.state.protein[0], /* TODO */this.state.volumeDims, selectionPixels, projectionPixels);
 			worker.terminate();
 
 			const countFlat = Array.from(res.slice(0, 256*256));
@@ -204,9 +209,9 @@ class Main extends Component {
 
 	render() {
 		let volumeSize = [
-			this.state.sdf.dims[0] * this.state.voxelSize[0],
-			this.state.sdf.dims[1] * this.state.voxelSize[1],
-			this.state.sdf.dims[2] * this.state.voxelSize[2]
+			this.state.volumeDims[0] * this.state.voxelSize[0],
+			this.state.volumeDims[1] * this.state.voxelSize[1],
+			this.state.volumeDims[2] * this.state.voxelSize[2]
 		]
 
 		return (
@@ -233,6 +238,7 @@ class Main extends Component {
 				<Canvas
 					mainView={this.state.mainView}
 					mapView={this.state.mapView}
+					volumeDims={this.state.volumeDims}
 					sdf={this.state.sdf}
 					protein={this.state.protein}
 					curvature={this.state.curvature}
@@ -256,7 +262,7 @@ class Main extends Component {
 					/>
 					<Sidebar
 						open={this.state.showSidebar}
-						numCompartments={this.state.sdf.buffers.length}
+						numCompartments={this.state.sdf.length}
 						onCompartmentSelection={this.handleCompartmentSelection}
 						selection={this.state.compartmentIndex}
 						onDisplaySegmentation={this.handleDisplaySegmentation}
@@ -269,6 +275,7 @@ class Main extends Component {
 					/>
 				</Overlay>
 				<Views
+					heataxes={this.state.heataxes}
 					heatmap={Array.from(this.state.heatmap)}
 					heatarea={Array.from(this.state.heatarea)}
 					localHeatmap={Array.from(this.state.localHeatmap)}

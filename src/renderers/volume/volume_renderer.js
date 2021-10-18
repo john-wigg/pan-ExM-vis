@@ -9,7 +9,7 @@ class VolumeRenderer {
 	// Set the protein data.
 	setProteinData(texture) { };
 
-	setDistanceData(textures) { };
+	setDistanceData(textures, ranges) { };
 
 	setCurvatureData(texture) { };
 

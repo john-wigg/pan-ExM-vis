@@ -5,7 +5,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 
 const Plots = props => {
     const [page, setPage] = useState("heatmap");
-
+    
     let data = {};
     let layout = {};
 
@@ -17,8 +17,8 @@ const Plots = props => {
         const x = new Array(props.heatmap.length);
         const y = new Array(props.heatmap[0].length);
         for (let i = 0; i < heat.length; ++i) {
-            x[i] = i / 10.0 - 5.0;
-            y[i] = 5.0 * (i / 255.0 - 0.5);
+            x[i] = i / 255.0 * (props.heataxes[0][1] - props.heataxes[0][0]) + props.heataxes[0][0];
+            y[i] = i / 255.0 * (props.heataxes[1][1] - props.heataxes[1][0]) + props.heataxes[1][0];
             for (let j = 0; j < heat.length; ++j) {
                 if (props.heatarea[i][j] === 0) heat[i][j] = 0.0;
                 else heat[i][j] = props.heatmap[i][j] / props.heatarea[i][j];
@@ -121,7 +121,7 @@ const Plots = props => {
 
         const x = new Array(props.heatmap.length);
         for (let i = 0; i < props.heatmap.length; ++i) {
-            x[i] = i / 10.0 - 5.0;
+            x[i] = i / 255.0 * (props.heataxes[0][1] - props.heataxes[0][0]) + props.heataxes[0][0];
         }
 
         data = [
@@ -182,7 +182,7 @@ const Plots = props => {
 
         const x = new Array(props.heatmap.length);
         for (let i = 0; i < props.heatmap.length; ++i) {
-            x[i] = 5.0 * (i / 255.0 - 0.5);
+            x[i] = i / 255.0 * (props.heataxes[1][1] - props.heataxes[1][0]) + props.heataxes[1][0];
         }
 
         data = [

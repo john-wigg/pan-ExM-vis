@@ -31,6 +31,7 @@ const Views = props => {
                     <div className="h-divider"></div>
                     <div className="flex-fill stack-base">
                         <Plots
+                            heataxes={props.heataxes}
                             heatmap={props.heatmap}
                             heatarea={props.heatarea}
                             localHeatmap={props.localHeatmap}

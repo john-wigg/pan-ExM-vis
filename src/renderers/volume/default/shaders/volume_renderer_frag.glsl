@@ -15,8 +15,10 @@ uniform sampler3D volume8;
 uniform sampler3D volume9;
 
 uniform sampler3D sdf;
+uniform vec2 sdfRange;
 
 uniform sampler3D curvature;
+uniform vec2 curvatureRange;
 
 uniform sampler2D texDepth;
 
@@ -149,11 +151,11 @@ vec2 sampleProtein(vec3 p, int lod) {
 }
 
 float sampleSdf(vec3 p) {
-    return texture(sdf, p/volumeSize + 0.5).r * 255.0 / 10.0 - 5.0;
+    return texture(sdf, p/volumeSize + 0.5).r * (sdfRange.y - sdfRange.x) + sdfRange.x;
 }
 
 float sampleCurvature(vec3 p) {
-    return 5.0*((texture(curvature, p/volumeSize + 0.5).r - 0.5));
+    return texture(curvature, p/volumeSize + 0.5).r * (curvatureRange.y - curvatureRange.x) + curvatureRange.x;
 }
 
 float sampleProjection(vec3 p) {

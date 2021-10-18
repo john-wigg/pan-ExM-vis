@@ -22,22 +22,22 @@ const Canvas = props => {
 	
 	useEffect(() => {
 		if (props.ready && props.mainView && props.mapView) {
-			Renderer.setDistanceFieldData(props.sdf.buffers, props.sdf.dims);
+			Renderer.setDistanceFieldData(props.sdf, props.volumeDims);
 		}
-	}, [props.sdf, props.mainView, props.mapView, props.ready])
+	}, [props.sdf, props.mainView, props.mapView, props.ready, props.volumeDims])
 	
 	
 	useEffect(() => {
 		if (props.ready && props.mainView && props.mapView) {
-			Renderer.setProteinData(props.protein.buffer, props.protein.dims);
+			Renderer.setProteinData(props.protein, props.volumeDims);
 		}
-	}, [props.protein, props.mainView, props.mapView, props.ready])
+	}, [props.protein, props.mainView, props.mapView, props.ready, props.volumeDims])
 
 	useEffect(() => {
 		if (props.ready && props.mainView && props.mapView) {
-			Renderer.setCurvatureData(props.curvature.buffer, props.curvature.dims);
+			Renderer.setCurvatureData(props.curvature, props.volumeDims);
 		}
-	}, [props.curvature, props.mainView, props.mapView, props.ready])
+	}, [props.curvature, props.mainView, props.mapView, props.ready, props.volumeDims])
 
 	
 	useEffect(() => {

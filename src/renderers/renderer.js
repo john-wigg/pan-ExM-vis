@@ -72,27 +72,30 @@ function setProteinData(pyramid, dims) {
 
 function setDistanceFieldData(arrays, dims) {
 	let textures = [];
+	let ranges = [];
 	for (var i = 0; i < arrays.length; ++i) {
-		const tex = new THREE.DataTexture3D(arrays[i], dims[0], dims[1], dims[2]);
+		const tex = new THREE.DataTexture3D(arrays[i].data, dims[0], dims[1], dims[2]);
 		tex.format = THREE.RedFormat;
 		tex.minFilter = THREE.LinearFilter;
 		tex.magFilter = THREE.LinearFilter;
 		tex.unpackAlignment = 1;
 
 		textures.push(tex);
+		ranges.push([arrays[i].min, arrays[i].max])
 	}
-	volumeRenderer.setDistanceData(textures);
+	volumeRenderer.setDistanceData(textures, ranges);
 	mapRenderer.setDistanceData(textures);
 }
 
-function setCurvatureData(buffer, dims) {
-	const tex = new THREE.DataTexture3D(buffer, dims[0], dims[1], dims[2]);
+function setCurvatureData(curvature, dims) {
+	const tex = new THREE.DataTexture3D(curvature.data, dims[0], dims[1], dims[2]);
+	const range = [curvature.min, curvature.max];
 	tex.format = THREE.RedFormat;
 	tex.minFilter = THREE.LinearFilter;
 	tex.magFilter = THREE.LinearFilter;
 	tex.unpackAlignment = 1;
 
-	volumeRenderer.setCurvatureData(tex);
+	volumeRenderer.setCurvatureData(tex, range);
 }
 
 async function init() {

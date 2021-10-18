@@ -148,9 +148,9 @@ class Import extends Component {
         }
 
         //const sdfBuffers = await Promise.all(promises); // This needs too much memory for some reason?
-        let sdfBuffers = [];
+        let sdf = [];
         for (let i = 0; i < promises.length; ++i) {
-            sdfBuffers.push(await promises[i]);
+            sdf.push(await promises[i]);
         }
         for (let i = 0; i < workers.length; ++i) {
             workers[i].terminate();
@@ -165,7 +165,7 @@ class Import extends Component {
         const onProgress = (p) => {
             this.onCurvProgress(p * 100)
         }
-        let curvBuffer = await curvature(sdfBuffers[0], [tiffProtein.width, tiffProtein.height, tiffProtein.depth], voxelSize, Comlink.proxy(onProgress));
+        let curv = await curvature(sdf[0], [tiffProtein.width, tiffProtein.height, tiffProtein.depth], voxelSize, Comlink.proxy(onProgress));
 
         // Compute pyramid.
         let pyramid = [];
@@ -216,16 +216,16 @@ class Import extends Component {
         const counts = Array.from(Array(2**bitDepth).fill(0), () => new Array(2**bitDepth).fill(0));
         const area = Array.from(Array(2**bitDepth).fill(0), () => new Array(2**bitDepth).fill(0));
 
-        for (let i = 0; i < sdfBuffers[0].length; ++i) {
-            counts[curvBuffer[i]][sdfBuffers[0][i]] += tiffProtein.pixels[i];
-            area[curvBuffer[i]][sdfBuffers[0][i]] += 1.0;
+        for (let i = 0; i < sdf[0].data.length; ++i) {
+            counts[curv.data[i]][sdf[0].data[i]] += tiffProtein.pixels[i];
+            area[curv.data[i]][sdf[0].data[i]] += 1.0;
         }
 
         this.setState({
             step: "dialog"
         });
 
-        this.props.onComplete(sdfBuffers, pyramid, curvBuffer, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
+        this.props.onComplete(sdf, pyramid, curv, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
                               [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)], counts, area);
     }
 
