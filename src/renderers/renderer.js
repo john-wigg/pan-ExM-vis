@@ -50,9 +50,9 @@ function setProteinData(pyramid, dims) {
 	let d = dims[2];
 	for (let i = 0; i < pyramid.length; ++i) {
 		const texture = new THREE.DataTexture3D(pyramid[i], w, h, d);
-		texture.format = THREE.RGFormat;
+		texture.format = THREE.RedFormat;
 		texture.type = THREE.UnsignedByteType;
-		texture.internalFormat = 'RG8';
+		texture.internalFormat = 'R8';
 		texture.minFilter = THREE.LinearFilter;
 		texture.magFilter = THREE.LinearFilter;
 		texture.generateMipmaps = false;

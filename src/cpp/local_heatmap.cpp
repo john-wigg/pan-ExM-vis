@@ -33,7 +33,7 @@ val local_heatmap(const val sdf, const val curv, const val protein, const val se
 
                 int indexHM = IDX2(sdf_data[index3], curv_data[index3], 256);
 
-                count[indexHM] += protein_data[2*index3];
+                count[indexHM] += protein_data[index3];
                 area[indexHM] += 1.0;
             }
         }

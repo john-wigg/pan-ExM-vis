@@ -173,12 +173,11 @@ class Import extends Component {
         let h = tiffProtein.height;
         let d = tiffProtein.depth;
 
-        let level0 = new Uint8Array(2*w*h*d);
+        let level0 = new Uint8Array(w*h*d);
         for (let i = 0; i < w; ++i) {
             for (let j = 0; j < h; ++j) {
                 for (let k = 0; k < d; ++k) {
-                    level0[2*(k*w*h+j*w+i)] = tiffProtein.pixels[k*w*h+j*w+i];
-                    level0[2*(k*w*h+j*w+i)+1] = level0[2*(k*w*h+j*w)+i];
+                    level0[k*w*h+j*w+i] = tiffProtein.pixels[k*w*h+j*w+i];
                 }
             }
         }
@@ -193,15 +192,14 @@ class Import extends Component {
             d = Math.ceil(d / 2.0);
 
             let plevel = pyramid[pyramid.length - 1];
-            let level = new Uint8Array(2*w*h*d);
+            let level = new Uint8Array(w*h*d);
             for (let pi = 0; pi < pw; ++pi) {
                 for (let pj = 0; pj < ph; ++pj) {
                     for (let pk = 0; pk < pd; ++pk) {
                         let i = Math.floor(pi/2.0);
                         let j = Math.floor(pj/2.0);
                         let k = Math.floor(pk/2.0);
-                        level[2*(k*w*h+j*w+i)] = Math.max(level[2*(k*w*h+j*w+i)], plevel[2*(pk*pw*ph+pj*pw+pi)]);
-                        level[2*(k*w*h+j*w+i)+1] = Math.min(level[2*(k*w*h+j*w+i)+1], plevel[2*(pk*pw*ph+pj*pw+pi)+1]);
+                        level[k*w*h+j*w+i] = Math.max(level[k*w*h+j*w+i], plevel[pk*pw*ph+pj*pw+pi]);
                     }
                 }
             }
