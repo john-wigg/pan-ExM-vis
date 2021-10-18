@@ -205,7 +205,7 @@ void main()
             // Simple sphere tracer.            
             float sdfVal = sampleSdf(rayPos);
             
-            if (sdfVal < 0.01) {
+            if (sdfVal <= 0.01) {
                 float curv;
                 vec3 normal;
                 calcNormalAndCurv(rayPos, normal, curv);
@@ -236,7 +236,7 @@ void main()
         float sdfVal = sampleSdf(rayPos);
 
         float stepSize = baseStepSize;
-        if (sdfVal < isovalue) {
+        if (sdfVal <= isovalue + 0.00001) {
             int lod = 0;
             
             if (useLod) {

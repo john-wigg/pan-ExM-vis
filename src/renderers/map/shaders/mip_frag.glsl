@@ -15,7 +15,7 @@ void main() {
     for (float i = 0.0; i < float(col); i += 1.0) {
         uv.z = i / float(col);
         float sdfVal = texture(sdf, uv).r * (sdfRange.y - sdfRange.x) + sdfRange.x - isovalue;
-        if (sdfVal <= 0.01) {
+        if (sdfVal <= 0.00001) {
             float density = texture(volume, uv).r;
             if (density > maxDensity) {
                 maxDensity = density;
