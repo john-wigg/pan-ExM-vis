@@ -13,5 +13,4 @@ void main() {
     vec4 c2 = texture(selection, vUv);
 
     gl_FragColor = mix(0.8*c1, c1, c2.r);
-    //gl_FragColor = vec4(vUv.x, vUv.y, 0.0, 1.0);
 }

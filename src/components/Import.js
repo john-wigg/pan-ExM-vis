@@ -214,9 +214,19 @@ class Import extends Component {
         const counts = Array.from(Array(2**bitDepth).fill(0), () => new Array(2**bitDepth).fill(0));
         const area = Array.from(Array(2**bitDepth).fill(0), () => new Array(2**bitDepth).fill(0));
 
+        const compartmentHist = Array(numCompartments).fill(0);
+        const compartmentArea = Array(numCompartments).fill(0);
         for (let i = 0; i < sdf[0].data.length; ++i) {
             counts[curv.data[i]][sdf[0].data[i]] += tiffProtein.pixels[i];
             area[curv.data[i]][sdf[0].data[i]] += 1.0;
+            if (tiffSegmentation.pixels[i] > 0) {
+                compartmentHist[tiffSegmentation.pixels[i]-1] += tiffProtein.pixels[i];
+                compartmentArea[tiffSegmentation.pixels[i]-1] += 1.0;
+            }
+        }
+
+        for (let i = 0; i < numCompartments; ++i) {
+            compartmentHist[i] /= compartmentArea[i];
         }
 
         this.setState({
@@ -224,7 +234,7 @@ class Import extends Component {
         });
 
         this.props.onComplete(sdf, pyramid, curv, [tiffProtein.width, tiffProtein.height, tiffProtein.depth],
-                              [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)], counts, area);
+                              [parseFloat(voxelSize.x), parseFloat(voxelSize.y), parseFloat(voxelSize.z)], counts, area, compartmentHist);
     }
 
     handleClose() {

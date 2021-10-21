@@ -32,6 +32,7 @@ class Main extends Component {
 			heatmap: [],
 			heatarea: [],
 			heataxes: [[0, 0], [0, 0]],
+			compartmentHistogram: [],
 			localHeatmap: [],
 			localHeatarea: [],
 			debugSamples: false,
@@ -86,7 +87,7 @@ class Main extends Component {
 		})
 	}
 
-	handleCompleteImport(sdf, proteinBuffers, curv, bufferDims, voxelSize, heatmap, heatarea) {
+	handleCompleteImport(sdf, proteinBuffers, curv, bufferDims, voxelSize, heatmap, heatarea, compartmentHist) {
 		this.setState({
 			sdf: sdf,
 			protein: proteinBuffers,
@@ -97,7 +98,8 @@ class Main extends Component {
 			ready: true,
 			heatmap: heatmap,
 			heatarea: heatarea,
-			heataxes: [[sdf[0].min, sdf[0].max], [curv.min, curv.max]]
+			heataxes: [[sdf[0].min, sdf[0].max], [curv.min, curv.max]],
+			compartmentHistogram: compartmentHist
 		})
 	}
 
@@ -201,7 +203,6 @@ class Main extends Component {
 	}
 
 	handleSelectionDone(selectionPixels) {
-		console.log("SELECTION DONE")
 		this.setState({
 			selectionPixels: selectionPixels
 		})
@@ -279,6 +280,7 @@ class Main extends Component {
 					heataxes={this.state.heataxes}
 					heatmap={Array.from(this.state.heatmap)}
 					heatarea={Array.from(this.state.heatarea)}
+					compartmentHistogram={this.state.compartmentHistogram}
 					localHeatmap={Array.from(this.state.localHeatmap)}
 					localHeatarea={Array.from(this.state.localHeatarea)}
 					onMainView={this.handleMainView}

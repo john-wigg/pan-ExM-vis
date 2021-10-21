@@ -213,6 +213,36 @@ const Plots = props => {
                 }
             }
         };
+    } else if (page === "compartments") {
+        dropdownToggleString = "Compartments"
+
+        const x = Array(props.compartmentHistogram.length);
+        for (let i = 0; i < x.length; ++i) {
+            x[i] = "Compartment " + (i+1);
+        }
+
+        data = [
+            {
+                x: x,
+                y: props.compartmentHistogram,
+                type: 'bar',
+                name: 'Global'
+            }
+        ];
+
+        layout = {
+            title: 'Protein Density per Compartment',
+            xaxis: {
+                title: {
+                    text: 'Compartment',
+                },
+            },
+            yaxis: {
+                title: {
+                    text: 'Protein count/voxel'
+                }
+            }
+        };
     }
 
     return (
@@ -245,6 +275,11 @@ const Plots = props => {
                             onClick={() => { setPage("curvature") }}
                         >
                             Curvature Histogram
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                            onClick={() => { setPage("compartments") }}
+                        >
+                            Compartments
                         </Dropdown.Item>
                     </Dropdown.Menu>
                 </Dropdown>

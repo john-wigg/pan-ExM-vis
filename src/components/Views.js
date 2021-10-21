@@ -34,6 +34,7 @@ const Views = props => {
                             heataxes={props.heataxes}
                             heatmap={props.heatmap}
                             heatarea={props.heatarea}
+                            compartmentHistogram={props.compartmentHistogram}
                             localHeatmap={props.localHeatmap}
                             localHeatarea={props.localHeatarea}
                         />
