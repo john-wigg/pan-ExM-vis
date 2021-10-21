@@ -249,7 +249,7 @@ SdfResult sdf(const val input, unsigned char target, int width, int height, int 
         }
     }
 
-    max_dist = fmin(max_dist, -3.0 * min_dist);
+    max_dist = fmin(max_dist, -5.0 * min_dist);
 
     for (int k = 0; k < depth; ++k) {
         for (int j = 0; j < height; ++j) {
