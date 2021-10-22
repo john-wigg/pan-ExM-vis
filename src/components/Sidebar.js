@@ -75,6 +75,7 @@ const Sidebar = props => {
                                     />
                                     <Form.Check.Label>Display Segmentation</Form.Check.Label>
                                 </Form.Check>
+                                Protein Visualisation Distance Cutoff
                                 <Form.Range
                                     disabled={props.numCompartments===0}
                                     onChange={handleChangeIsovalue}
