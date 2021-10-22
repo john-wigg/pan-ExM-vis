@@ -4,9 +4,11 @@ import Stats from 'three/examples/jsm/libs/stats.module.js';
 import { VolumeRendererDefault} from './volume/default/volume_renderer_default.js'
 import { MapRenderer } from "./map/map_renderer.js"
 
-var stats = new Stats();
-stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild( stats.dom );
+if (process.env.NODE_ENV === "development") {
+	var stats = new Stats();
+	stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+	document.body.appendChild( stats.dom );
+}
 
 var canvas;
 var mainView;
