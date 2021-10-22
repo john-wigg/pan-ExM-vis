@@ -88,6 +88,14 @@ const Sidebar = props => {
                                         {dropdownItems}
                                     </Dropdown.Menu>
                                 </Dropdown>
+                                Performance Options
+                                <Form.Check className="form-switch">
+                                    <Form.Check.Input
+                                        checked={props.useLod}
+                                        onChange={handleChangeUseLod}
+                                    />
+                                    <Form.Check.Label>Use LoD</Form.Check.Label>
+                                </Form.Check>
                                 Debug Options
                                 <Form.Check className="form-switch">
                                     <Form.Check.Input
@@ -95,13 +103,6 @@ const Sidebar = props => {
                                         onChange={handleChangeDebugSamples}
                                     />
                                     <Form.Check.Label>Display Texture Samples</Form.Check.Label>
-                                </Form.Check>
-                                <Form.Check className="form-switch">
-                                    <Form.Check.Input
-                                        checked={props.useLod}
-                                        onChange={handleChangeUseLod}
-                                    />
-                                    <Form.Check.Label>Use LoD</Form.Check.Label>
                                 </Form.Check>
                             </Form>
                         </Card.Body>
