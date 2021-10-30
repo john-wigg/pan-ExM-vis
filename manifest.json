@@ -1,6 +1,6 @@
 {
-  "short_name": "PanVisionVis",
-  "name": "PanVision Visualisation Tool",
+  "short_name": "pan-ExM Visualisation",
+  "name": "pan-ExM Data Visualisation Tool",
   "icons": [
     {
       "src": "favicon.ico",
